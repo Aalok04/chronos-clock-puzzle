@@ -44,15 +44,22 @@ app.get('*', (req, res) => {
 
 const HOST = '0.0.0.0';
 
-// Start Server and Initialize Database Connection
-app.listen(PORT, HOST, async () => {
-  console.log(`=======================================================`);
-  console.log(`  CHRONOS: Time Manipulation Clock Puzzle Engine`);
-  console.log(`  Local Access:   http://localhost:${PORT}`);
-  console.log(`  Network Access: http://192.168.1.9:${PORT}`);
-  console.log(`  Environment:    ${process.env.NODE_ENV || 'development'}`);
-  console.log(`=======================================================`);
+// Start Server when not in serverless mode
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, HOST, async () => {
+    console.log(`=======================================================`);
+    console.log(`  CHRONOS: Time Manipulation Clock Puzzle Engine`);
+    console.log(`  Local Access:   http://localhost:${PORT}`);
+    console.log(`  Network Access: http://192.168.1.9:${PORT}`);
+    console.log(`  Environment:    ${process.env.NODE_ENV || 'development'}`);
+    console.log(`=======================================================`);
 
-  // Initialize DB connection & migrations
-  await db.initDB();
-});
+    // Initialize DB connection & migrations
+    await db.initDB();
+  });
+} else {
+  // Serverless initialization
+  db.initDB();
+}
+
+module.exports = app;
