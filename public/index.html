@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>CHRONOS: The Great Escapement | Time Manipulation Clock Puzzle</title>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-container-lowest": "#0c0e14",
+            "surface-container-low": "#191b22",
+            "surface-container": "#1e1f26",
+            "surface-container-high": "#282a30",
+            "surface-container-highest": "#33343b",
+            "surface": "#111319",
+            "background": "#111319",
+            "primary": "#eec06a",
+            "primary-container": "#cda250",
+            "primary-fixed": "#ffdea7",
+            "primary-fixed-dim": "#eec06a",
+            "secondary": "#ffb692",
+            "secondary-container": "#763713",
+            "secondary-fixed": "#ffdbcb",
+            "tertiary": "#adc6ff",
+            "tertiary-container": "#7ca8ff",
+            "outline": "#9b8f7e",
+            "outline-variant": "#4e4638",
+            "on-surface": "#e2e2eb",
+            "on-surface-variant": "#d2c5b2",
+            "on-primary-container": "#523900",
+            "error": "#ffb4ab",
+            "error-container": "#93000a"
+          },
+          fontFamily: {
+            "headline": ["Playfair Display", "serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    }
+  </script>
+  
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body class="bg-surface-container-lowest text-on-surface min-h-screen overflow-x-hidden font-headline flex flex-col selection:bg-primary/30 selection:text-primary-fixed">
+
+  <!-- ========================================================================= -->
+  <!-- 1. TOP NAVIGATION BAR                                                     -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-50 w-full px-3 sm:px-8 py-2.5 sm:py-3.5 border-b border-outline-variant/30 bg-surface-container-lowest/90 backdrop-blur-md shadow-[0_4px_24px_rgba(0,0,0,0.8)]">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+      
+      <!-- Brand Logo -->
+      <a href="/" class="flex items-center gap-2 sm:gap-3 group shrink-0">
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-surface-container-high border border-primary/50 flex items-center justify-center shadow-inner group-hover:border-primary transition-all">
+          <span class="material-symbols-outlined text-primary text-[18px] sm:text-[22px] spin-slow">settings</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <span class="text-lg sm:text-2xl font-bold tracking-widest text-primary uppercase">CHRONOS</span>
+            <span class="text-[8px] sm:text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-primary/10 border border-primary/40 text-primary-fixed hidden xs:inline">The Great Escapement</span>
+          </div>
+          <p class="font-mono text-on-surface-variant text-[8px] sm:text-[10px] tracking-wider">Time Manipulation Horological Puzzle</p>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="hidden md:flex items-center gap-6 font-mono text-xs text-on-surface-variant">
+        <a href="#characters" class="hover:text-primary transition-colors flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">groups</span>
+          <span>Chronomancers</span>
+        </a>
+        <a href="#mechanics" class="hover:text-primary transition-colors flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">precision_manufacturing</span>
+          <span>The Mechanism</span>
+        </a>
+        <a href="#epochs" class="hover:text-primary transition-colors flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">timeline</span>
+          <span>Epoch Trials</span>
+        </a>
+        <a href="#rules" class="hover:text-primary transition-colors flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">menu_book</span>
+          <span>How to Play</span>
+        </a>
+      </nav>
+
+      <!-- Trailing Action Buttons -->
+      <div class="flex items-center gap-1.5 sm:gap-3">
+        
+        <!-- Logged In Profile (Dynamic) -->
+        <div id="landing-user-section" class="hidden flex items-center gap-2 sm:gap-3">
+          <div class="flex flex-col text-right font-mono text-[10px] sm:text-xs">
+            <span id="landing-username" class="font-bold text-primary truncate max-w-[90px] sm:max-w-none">TimeKeeper</span>
+            <span id="landing-rank" class="text-[9px] text-secondary hidden sm:inline">Scholar</span>
+          </div>
+          <a href="/game" class="brass-actuator px-2.5 sm:px-3.5 py-1.5 rounded font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 shadow-md">
+            <span class="material-symbols-outlined text-xs sm:text-sm">play_circle</span>
+            <span>Resume</span>
+          </a>
+          <button id="btn-landing-logout" class="p-1 sm:p-1.5 rounded bg-surface-container border border-outline-variant/40 hover:border-primary/50 text-on-surface-variant hover:text-primary transition-colors" title="Sign Out">
+            <span class="material-symbols-outlined text-xs sm:text-sm">logout</span>
+          </button>
+        </div>
+
+        <!-- Guest & Sign In CTA (Logged Out) -->
+        <button id="btn-nav-guest" class="px-2.5 sm:px-3.5 py-1.5 rounded bg-surface-container border border-primary/40 hover:border-primary text-primary hover:bg-primary/10 transition-colors font-mono text-[11px] sm:text-xs font-semibold flex items-center gap-1 sm:gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-xs sm:text-sm">bolt</span>
+          <span>Guest</span>
+        </button>
+
+        <button id="btn-nav-signin" class="brass-actuator px-2.5 sm:px-3.5 py-1.5 rounded font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 shadow-md">
+          <span class="material-symbols-outlined text-xs sm:text-sm">lock_open</span>
+          <span>Sign In</span>
+        </button>
+
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- 2. HERO SECTION                                                           -->
+  <!-- ========================================================================= -->
+  <section class="relative w-full py-8 sm:py-16 lg:py-20 px-3.5 sm:px-8 border-b border-outline-variant/30 bg-guilloche overflow-hidden">
+    <!-- Ambient Glow Blobs -->
+    <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[500px] sm:w-[700px] h-[300px] sm:h-[400px] bg-primary/10 blur-[100px] sm:blur-[130px] rounded-full pointer-events-none"></div>
+    <div class="absolute bottom-0 right-10 w-[300px] sm:w-[400px] h-[200px] sm:h-[300px] bg-secondary-container/20 blur-[80px] sm:blur-[100px] rounded-full pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10 lg:gap-12 items-center relative z-10">
+      
+      <!-- Hero Copy -->
+      <div class="lg:col-span-7 space-y-4 sm:space-y-6 text-center lg:text-left">
+        
+        <!-- Victorian Eyebrow Badge -->
+        <div class="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-surface-container-high/90 border border-primary/40 font-mono text-[10px] sm:text-[11px] text-primary-fixed shadow-inner">
+          <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary anim-aether"></span>
+          <span class="uppercase tracking-widest font-semibold">Chronomancy & Dual-Hand Horology</span>
+        </div>
+
+        <!-- Main Title -->
+        <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black text-on-surface tracking-tight leading-snug sm:leading-[1.15]">
+          Bend the Gears.<br/>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-fixed via-primary to-secondary">
+            Master the Flow of Time.
+          </span>
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="font-sans text-xs sm:text-base text-on-surface-variant leading-relaxed max-w-2xl mx-auto lg:mx-0">
+          Step into the high-precision world of Master Chronomancers. An intricate 24-socket escapement is running out of sync. Slot forward and reverse time-warping pins along the orbital sweep of the clock hands to bring the dial to its designated target before the duration expires.
+        </p>
+
+        <!-- CTA Button Group -->
+        <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-2.5 sm:gap-4 pt-1 sm:pt-2">
+          
+          <!-- Instant Guest Play Button -->
+          <button id="btn-hero-guest" class="w-full sm:w-auto brass-actuator px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-lg font-mono text-xs sm:text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 sm:gap-2.5 shadow-[0_8px_25px_rgba(205,162,80,0.35)] transition-all transform hover:-translate-y-0.5">
+            <span class="material-symbols-outlined text-base sm:text-lg">bolt</span>
+            <span>Play as Guest (Instant)</span>
+          </button>
+
+          <!-- Sign In / Cloud Account Button -->
+          <button id="btn-hero-signin" class="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3.5 rounded-lg bg-surface-container border border-outline-variant/60 hover:border-primary text-on-surface hover:text-primary font-mono text-xs sm:text-sm font-semibold uppercase tracking-wider flex items-center justify-center gap-2 transition-all">
+            <span class="material-symbols-outlined text-base sm:text-lg">lock_open</span>
+            <span>Sign In / Profile</span>
+          </button>
+
+          <!-- Direct Launch Link -->
+          <a href="/game" class="w-full sm:w-auto px-4 sm:px-5 py-2.5 sm:py-3.5 rounded-lg bg-surface-container-high/60 hover:bg-surface-container-high border border-outline-variant/40 text-on-surface-variant hover:text-on-surface font-mono text-[11px] sm:text-xs uppercase flex items-center justify-center gap-1.5 transition-colors">
+            <span class="material-symbols-outlined text-sm sm:text-base">east</span>
+            <span>Enter Chamber</span>
+          </a>
+
+        </div>
+
+        <!-- Telemetry Stats Strip -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 pt-3 sm:pt-6 border-t border-outline-variant/30 font-mono text-xs">
+          <div class="p-2 sm:p-2.5 rounded bg-surface-container/70 border border-outline-variant/30 text-center sm:text-left">
+            <div class="text-[9px] sm:text-[10px] uppercase text-outline">Radial Sockets</div>
+            <div class="font-bold text-primary-fixed text-xs sm:text-base">24 Positions</div>
+          </div>
+          <div class="p-2 sm:p-2.5 rounded bg-surface-container/70 border border-outline-variant/30 text-center sm:text-left">
+            <div class="text-[9px] sm:text-[10px] uppercase text-outline">Pin Matrices</div>
+            <div class="font-bold text-emerald-400 text-xs sm:text-base">3 Modifiers</div>
+          </div>
+          <div class="p-2 sm:p-2.5 rounded bg-surface-container/70 border border-outline-variant/30 text-center sm:text-left">
+            <div class="text-[9px] sm:text-[10px] uppercase text-outline">Calibrated Epochs</div>
+            <div class="font-bold text-secondary text-xs sm:text-base">5 Trials + Free</div>
+          </div>
+          <div class="p-2 sm:p-2.5 rounded bg-surface-container/70 border border-outline-variant/30 text-center sm:text-left">
+            <div class="text-[9px] sm:text-[10px] uppercase text-outline">Controls</div>
+            <div class="font-bold text-sky-400 text-xs sm:text-base">Tap & Drag</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Hero Visual: Ornate Concept Clock Showcase -->
+      <div class="lg:col-span-5 flex justify-center">
+        <div class="relative w-full max-w-sm sm:max-w-md coin-edge-border rounded-2xl overflow-hidden bg-surface-container-low border border-primary/50 shadow-2xl group">
+          
+          <!-- Screwheads on Corners -->
+          <div class="screwhead absolute top-3 left-3 z-30"></div>
+          <div class="screwhead absolute top-3 right-3 z-30"></div>
+          <div class="screwhead absolute bottom-3 left-3 z-30"></div>
+          <div class="screwhead absolute bottom-3 right-3 z-30"></div>
+
+          <!-- Hero Image -->
+          <div class="relative h-48 sm:h-72 md:h-auto md:aspect-square overflow-hidden bg-surface-container-lowest">
+            <img src="/images/hero-chronos.jpg" alt="CHRONOS The Great Escapement Clock Tower" class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-black/30"></div>
+            
+            <!-- Floating Hologram Badge -->
+            <div class="absolute bottom-2.5 left-2.5 right-2.5 sm:bottom-4 sm:left-4 sm:right-4 p-2 sm:p-3 rounded-lg bg-surface-container-lowest/85 backdrop-blur-md border border-primary/40 font-mono text-[10px] sm:text-[11px] shadow-lg flex items-center justify-between">
+              <div class="flex items-center gap-1.5 sm:gap-2">
+                <span class="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-emerald-400 anim-aether"></span>
+                <span class="text-on-surface font-semibold truncate">Dual-Track Resonance</span>
+              </div>
+              <span class="text-primary font-bold shrink-0">28,800 VPH</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 3. THE CHARACTERS (THE ORDER OF CHRONOMANCERS)                             -->
+  <!-- ========================================================================= -->
+  <section id="characters" class="w-full py-10 sm:py-16 lg:py-24 px-3.5 sm:px-8 border-b border-outline-variant/30 bg-surface-container-low relative">
+    <div class="max-w-7xl mx-auto space-y-6 sm:space-y-12">
+      
+      <!-- Section Heading -->
+      <div class="text-center max-w-2xl mx-auto space-y-2 sm:space-y-3">
+        <div class="inline-flex items-center gap-2 font-mono text-[10px] sm:text-xs uppercase tracking-widest text-primary">
+          <span class="material-symbols-outlined text-sm">groups</span>
+          <span>The Guild of Time Keepers</span>
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-bold text-on-surface">Meet the Master Chronomancers</h2>
+        <p class="font-sans text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+          The Great Clockwork is maintained by three legendary figures who forged the time-warping pins and calibrated the dual-track escapement.
+        </p>
+      </div>
+
+      <!-- Character Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+        
+        <!-- Character 1: Alistair Vance -->
+        <div class="coin-edge-border rounded-xl bg-surface-container border border-primary/40 shadow-xl overflow-hidden flex flex-col hover:border-primary transition-all duration-300 group">
+          <div class="relative h-44 sm:h-56 md:h-auto md:aspect-[3/4] overflow-hidden bg-surface-container-lowest">
+            <img src="/images/char-horologist.jpg" alt="Master Horologist Alistair Vance" class="w-full h-full object-cover object-[center_15%] group-hover:scale-105 transition-transform duration-500"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent"></div>
+            <div class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded bg-surface-container-lowest/85 border border-primary/40 font-mono text-[8px] sm:text-[9px] uppercase tracking-wider text-primary">
+              Grand Regulator
+            </div>
+          </div>
+          
+          <div class="p-3.5 sm:p-5 flex-1 flex flex-col justify-between space-y-2.5 sm:space-y-4">
+            <div class="space-y-1 sm:space-y-1.5">
+              <div class="font-mono text-[9px] sm:text-[10px] uppercase text-secondary tracking-wider font-semibold">The Escapement Sovereign</div>
+              <h3 class="text-base sm:text-xl font-bold text-primary">Master Alistair Vance</h3>
+              <p class="font-sans text-[11px] sm:text-xs text-on-surface-variant leading-relaxed">
+                Guardian of the Great Chronometer for four decades. With his precision monocle ocular lenses, he tracks gear meshing down to the micron and calibrated the 5 Epoch Trials.
+              </p>
+            </div>
+
+            <div class="p-2 sm:p-3 rounded bg-surface-container-lowest border border-outline-variant/30 font-sans italic text-[10px] sm:text-[11px] text-primary-fixed-dim leading-snug">
+              "Time is not a wild river to drown in, but an engine of brass and rubies waiting for an exacting hand."
+            </div>
+
+            <div class="pt-1.5 sm:pt-2 border-t border-outline-variant/30 flex items-center justify-between font-mono text-[9px] sm:text-[10px] text-outline">
+              <span>SPECIALTY</span>
+              <span class="text-primary font-semibold">Dual-Hand Harmonics</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Character 2: Lady Genevieve Thorne -->
+        <div class="coin-edge-border rounded-xl bg-surface-container border border-emerald-500/40 shadow-xl overflow-hidden flex flex-col hover:border-emerald-400 transition-all duration-300 group">
+          <div class="relative h-44 sm:h-56 md:h-auto md:aspect-[3/4] overflow-hidden bg-surface-container-lowest">
+            <img src="/images/char-aethersmith.jpg" alt="Lady Genevieve Thorne" class="w-full h-full object-cover object-[center_15%] group-hover:scale-105 transition-transform duration-500"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent"></div>
+            <div class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded bg-surface-container-lowest/85 border border-emerald-500/50 font-mono text-[8px] sm:text-[9px] uppercase tracking-wider text-emerald-400">
+              Chief Aether-Smith
+            </div>
+          </div>
+          
+          <div class="p-3.5 sm:p-5 flex-1 flex flex-col justify-between space-y-2.5 sm:space-y-4">
+            <div class="space-y-1 sm:space-y-1.5">
+              <div class="font-mono text-[9px] sm:text-[10px] uppercase text-emerald-400 tracking-wider font-semibold">The Forge Mistress</div>
+              <h3 class="text-base sm:text-xl font-bold text-emerald-300">Lady Genevieve Thorne</h3>
+              <p class="font-sans text-[11px] sm:text-xs text-on-surface-variant leading-relaxed">
+                Brilliant inventor who discovered how to fuse aether crystals into brass pins. Her glowing green (+20m) and cyan (+10m) warp pins allow the escapement to leap forward through temporal gaps.
+              </p>
+            </div>
+
+            <div class="p-2 sm:p-3 rounded bg-surface-container-lowest border border-outline-variant/30 font-sans italic text-[10px] sm:text-[11px] text-emerald-200/90 leading-snug">
+              "Natural time crawls too slowly. My pins give the clock the spark it needs to strike its true destiny."
+            </div>
+
+            <div class="pt-1.5 sm:pt-2 border-t border-outline-variant/30 flex items-center justify-between font-mono text-[9px] sm:text-[10px] text-outline">
+              <span>SPECIALTY</span>
+              <span class="text-emerald-400 font-semibold">+20m & +10m Forward Pins</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Character 3: Silas Drake -->
+        <div class="coin-edge-border rounded-xl bg-surface-container border border-rose-500/40 shadow-xl overflow-hidden flex flex-col hover:border-rose-400 transition-all duration-300 group">
+          <div class="relative h-44 sm:h-56 md:h-auto md:aspect-[3/4] overflow-hidden bg-surface-container-lowest">
+            <img src="/images/char-rewind.jpg" alt="Silas Drake" class="w-full h-full object-cover object-[center_15%] group-hover:scale-105 transition-transform duration-500"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-surface-container via-transparent to-transparent"></div>
+            <div class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded bg-surface-container-lowest/85 border border-rose-500/50 font-mono text-[8px] sm:text-[9px] uppercase tracking-wider text-rose-400">
+              Rewind Specialist
+            </div>
+          </div>
+          
+          <div class="p-3.5 sm:p-5 flex-1 flex flex-col justify-between space-y-2.5 sm:space-y-4">
+            <div class="space-y-1 sm:space-y-1.5">
+              <div class="font-mono text-[9px] sm:text-[10px] uppercase text-rose-400 tracking-wider font-semibold">The Chrono-Saboteur</div>
+              <h3 class="text-base sm:text-xl font-bold text-rose-300">Silas Drake</h3>
+              <p class="font-sans text-[11px] sm:text-xs text-on-surface-variant leading-relaxed">
+                Operating from the clocktower shadows, Silas mastered retrograde chronometry. His crimson ruby pins (-15m) reverse the gear-train, giving calibrators a way to correct overshoots.
+              </p>
+            </div>
+
+            <div class="p-2 sm:p-3 rounded bg-surface-container-lowest border border-outline-variant/30 font-sans italic text-[10px] sm:text-[11px] text-rose-200/90 leading-snug">
+              "Every pendulum must swing back. Never fear the reverse gear—it holds the power to undo fatal errors."
+            </div>
+
+            <div class="pt-1.5 sm:pt-2 border-t border-outline-variant/30 flex items-center justify-between font-mono text-[9px] sm:text-[10px] text-outline">
+              <span>SPECIALTY</span>
+              <span class="text-rose-400 font-semibold">-15m Retrograde Rewind</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Character 4 / Player Banner: The Apprentice (You) -->
+      <div class="p-3.5 sm:p-6 rounded-xl bg-surface-container-lowest border border-primary/40 flex flex-col sm:flex-row items-center justify-between gap-3.5 sm:gap-6 shadow-xl">
+        <div class="flex items-center gap-3 sm:gap-4 text-center sm:text-left">
+          <div class="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-primary/20 border-2 border-primary/60 flex items-center justify-center text-primary shrink-0">
+            <span class="material-symbols-outlined text-2xl sm:text-3xl">school</span>
+          </div>
+          <div>
+            <div class="font-mono text-[9px] sm:text-[10px] uppercase text-primary tracking-widest font-bold">The Apprentice Calibrator</div>
+            <h4 class="text-base sm:text-xl font-bold text-on-surface">The Next Sovereign: That is You</h4>
+            <p class="font-sans text-[11px] sm:text-xs text-on-surface-variant max-w-xl">
+              Armed with 9 time pins and an interactive 24-socket clock face, step into the chamber to solve the 5 calibrated trials or design your own trials in the Sandbox.
+            </p>
+          </div>
+        </div>
+        <a href="/game" class="w-full sm:w-auto brass-actuator px-5 py-2.5 rounded font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shrink-0 shadow-md">
+          <span class="material-symbols-outlined text-base">play_arrow</span>
+          <span>Enter as Calibrator</span>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 4. HOW THE PUZZLE WORKS (THE MECHANISM)                                    -->
+  <!-- ========================================================================= -->
+  <section id="mechanics" class="w-full py-10 sm:py-16 lg:py-24 px-3.5 sm:px-8 border-b border-outline-variant/30 bg-surface-container-lowest relative bg-grid-dots">
+    <div class="max-w-7xl mx-auto space-y-6 sm:space-y-12">
+      
+      <!-- Section Header -->
+      <div class="text-center max-w-2xl mx-auto space-y-2 sm:space-y-3">
+        <div class="inline-flex items-center gap-2 font-mono text-[10px] sm:text-xs uppercase tracking-widest text-primary">
+          <span class="material-symbols-outlined text-sm">precision_manufacturing</span>
+          <span>Horological Physics</span>
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-bold text-on-surface">The Science of Clock Manipulation</h2>
+        <p class="font-sans text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+          How the concentric radial sockets, dual clock hands, and time-warping pins combine into a deep mechanical puzzle.
+        </p>
+      </div>
+
+      <!-- 3 Feature Pillars -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-6">
+        
+        <!-- Pillar 1: Dual Orbital Trigger Rings -->
+        <div class="p-3.5 sm:p-6 rounded-xl bg-surface-container-low border border-outline-variant/40 space-y-3 sm:space-y-4 hover:border-primary/50 transition-colors">
+          <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-surface-container-high border border-sky-400/40 flex items-center justify-center text-sky-400">
+            <span class="material-symbols-outlined text-xl sm:text-2xl">donut_large</span>
+          </div>
+          <h3 class="text-base sm:text-lg font-bold text-on-surface">1. Dual Concentric Trigger Rings</h3>
+          <p class="font-sans text-[11px] sm:text-xs text-on-surface-variant leading-relaxed">
+            The clock face holds 24 jewel-socket positions split across two orbital tracks:
+          </p>
+          <div class="space-y-1.5 sm:space-y-2 font-mono text-[11px] sm:text-xs">
+            <div class="p-2 sm:p-2.5 rounded bg-surface-container-lowest border border-sky-500/30 flex items-start gap-2">
+              <span class="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-sky-400 mt-1 shrink-0"></span>
+              <div>
+                <span class="text-sky-300 font-bold block text-xs">Outer Cyan Ring (12 Sockets)</span>
+                <span class="text-on-surface-variant text-[10px] sm:text-[11px] font-sans">Triggered by the <strong>Minute Hand</strong> as it sweeps across 5-minute ticks (0m..55m).</span>
+              </div>
+            </div>
+            <div class="p-2 sm:p-2.5 rounded bg-surface-container-lowest border border-amber-500/30 flex items-start gap-2">
+              <span class="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-amber-400 mt-1 shrink-0"></span>
+              <div>
+                <span class="text-amber-300 font-bold block text-xs">Inner Amber Ring (12 Sockets)</span>
+                <span class="text-on-surface-variant text-[10px] sm:text-[11px] font-sans">Triggered by the <strong>Hour Hand</strong> as it sweeps past Roman numerals (1h..12h).</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pillar 2: 3 Time-Warping Pin Types -->
+        <div class="p-3.5 sm:p-6 rounded-xl bg-surface-container-low border border-outline-variant/40 space-y-3 sm:space-y-4 hover:border-primary/50 transition-colors">
+          <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-surface-container-high border border-emerald-400/40 flex items-center justify-center text-emerald-400">
+            <span class="material-symbols-outlined text-xl sm:text-2xl">extension</span>
+          </div>
+          <h3 class="text-base sm:text-lg font-bold text-on-surface">2. Three Time-Warping Pins</h3>
+          <p class="font-sans text-[11px] sm:text-xs text-on-surface-variant leading-relaxed">
+            Each pin triggers exactly once when a clock hand sweeps through its socket:
+          </p>
+          <div class="space-y-1.5 sm:space-y-2 font-mono text-[11px] sm:text-xs">
+            <div class="p-2 sm:p-2.5 rounded bg-emerald-950/30 border border-emerald-500/40 flex items-center justify-between">
+              <div class="flex items-center gap-1.5 sm:gap-2">
+                <span class="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+                <span class="text-emerald-300 font-bold text-xs">Forward Pin</span>
+              </div>
+              <span class="text-emerald-400 font-bold">+20m (+1/3 hr)</span>
+            </div>
+            <div class="p-2 sm:p-2.5 rounded bg-rose-950/30 border border-rose-500/40 flex items-center justify-between">
+              <div class="flex items-center gap-1.5 sm:gap-2">
+                <span class="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-rose-500 shadow-[0_0_8px_#ef4444]"></span>
+                <span class="text-rose-300 font-bold text-xs">Backward Pin</span>
+              </div>
+              <span class="text-rose-400 font-bold">-15m (-1/4 hr)</span>
+            </div>
+            <div class="p-2 sm:p-2.5 rounded bg-sky-950/30 border border-sky-500/40 flex items-center justify-between">
+              <div class="flex items-center gap-1.5 sm:gap-2">
+                <span class="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full bg-sky-500 shadow-[0_0_8px_#38bdf8]"></span>
+                <span class="text-sky-300 font-bold text-xs">Forward Pin</span>
+              </div>
+              <span class="text-sky-400 font-bold">+10m (+1/6 hr)</span>
+            </div>
+          </div>
+          <p class="font-sans text-[10px] sm:text-[11px] text-on-surface-variant italic">
+            You hold 9 pins in your reserve tray (3 of each type) to deploy strategically.
+          </p>
+        </div>
+
+        <!-- Pillar 3: The Invariant Duration Law -->
+        <div class="p-3.5 sm:p-6 rounded-xl bg-surface-container-low border border-outline-variant/40 space-y-3 sm:space-y-4 hover:border-primary/50 transition-colors">
+          <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-lg bg-surface-container-high border border-primary/40 flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-xl sm:text-2xl">functions</span>
+          </div>
+          <h3 class="text-base sm:text-lg font-bold text-on-surface">3. The Invariant Time Law</h3>
+          <p class="font-sans text-[11px] sm:text-xs text-on-surface-variant leading-relaxed">
+            The run duration is invariant—it always sweeps smoothly (e.g. 75 natural minutes). Your pins warp the hands to hit the target:
+          </p>
+          <div class="p-2.5 sm:p-3 rounded bg-surface-container-lowest border border-primary/30 font-mono text-[11px] sm:text-xs space-y-1.5 sm:space-y-2">
+            <div class="text-[9px] sm:text-[10px] uppercase text-outline">The Calibration Formula:</div>
+            <div class="text-primary-fixed font-bold leading-tight text-xs sm:text-sm">
+              Start Time + Duration + Σ(Pins) = Target
+            </div>
+            <div class="p-1.5 sm:p-2 rounded bg-surface-container text-[10px] sm:text-[11px] text-on-surface-variant space-y-0.5 sm:space-y-1">
+              <div>Example (Epoch 1):</div>
+              <div class="text-emerald-400 font-semibold">01:00 + 75m = 02:15 natural</div>
+              <div>Target = 02:35 ➔ <span class="text-primary font-bold">+20m Pin needed!</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 5. THE CALIBRATED EPOCHS & SANDBOX                                         -->
+  <!-- ========================================================================= -->
+  <section id="epochs" class="w-full py-10 sm:py-16 lg:py-24 px-3.5 sm:px-8 border-b border-outline-variant/30 bg-surface-container-low">
+    <div class="max-w-7xl mx-auto space-y-6 sm:space-y-12">
+      
+      <!-- Section Heading -->
+      <div class="text-center max-w-2xl mx-auto space-y-2 sm:space-y-3">
+        <div class="inline-flex items-center gap-2 font-mono text-[10px] sm:text-xs uppercase tracking-widest text-primary">
+          <span class="material-symbols-outlined text-sm">timeline</span>
+          <span>Progression & Trials</span>
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-bold text-on-surface">Five Calibrated Epochs</h2>
+        <p class="font-sans text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+          From the foundational single-pin escapement to the intricate multi-pin omega paradox, conquer each trial in sequence.
+        </p>
+      </div>
+
+      <!-- Epoch Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
+        
+        <!-- Epoch 1 -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-surface-container border border-primary/40 flex flex-col justify-between space-y-2.5 sm:space-y-3 shadow-md hover:border-primary transition-all">
+          <div>
+            <div class="flex items-center justify-between font-mono text-[9px] sm:text-[10px] text-primary mb-1">
+              <span>TRIAL I</span>
+              <span class="px-1.5 py-0.5 rounded bg-primary/20 text-primary-fixed font-bold">UNLOCKED</span>
+            </div>
+            <h4 class="text-base sm:text-lg font-bold text-on-surface">The First Escapement</h4>
+            <p class="font-sans text-[11px] sm:text-xs text-on-surface-variant mt-1">
+              Learn the fundamentals of pin placement. Calculate the natural delta and slot an emerald forward pin.
+            </p>
+          </div>
+          <div class="p-2 sm:p-2.5 rounded bg-surface-container-lowest font-mono text-[11px] sm:text-xs flex items-center justify-between border border-outline-variant/30">
+            <span>01:00 ➔ 02:35</span>
+            <span class="text-emerald-400 font-bold">+20m Pin</span>
+          </div>
+        </div>
+
+        <!-- Epoch 2 -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-surface-container border border-primary/40 flex flex-col justify-between space-y-2.5 sm:space-y-3 shadow-md hover:border-primary/50 transition-all">
+          <div>
+            <div class="flex items-center justify-between font-mono text-[9px] sm:text-[10px] text-secondary mb-1">
+              <span>TRIAL II</span>
+              <span class="px-1.5 py-0.5 rounded bg-surface-container-high text-outline">TIER 2</span>
+            </div>
+            <h4 class="text-base sm:text-lg font-bold text-on-surface">Harmonic Resonance</h4>
+            <p class="font-sans text-[11px] sm:text-xs text-on-surface-variant mt-1">
+              Coordinate minute and hour hand sweeps. Multiple pins must trigger in exact sequence.
+            </p>
+          </div>
+          <div class="p-2 sm:p-2.5 rounded bg-surface-container-lowest font-mono text-[11px] sm:text-xs flex items-center justify-between border border-outline-variant/30">
+            <span>01:20 ➔ 03:00</span>
+            <span class="text-secondary font-bold">Dual Sweeps</span>
+          </div>
+        </div>
+
+        <!-- Epoch 3 -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-surface-container border border-outline-variant/40 flex flex-col justify-between space-y-2.5 sm:space-y-3 shadow-md hover:border-primary/50 transition-all">
+          <div>
+            <div class="flex items-center justify-between font-mono text-[9px] sm:text-[10px] text-rose-400 mb-1">
+              <span>TRIAL III</span>
+              <span class="px-1.5 py-0.5 rounded bg-surface-container-high text-outline">TIER 3</span>
+            </div>
+            <h4 class="text-base sm:text-lg font-bold text-on-surface">Pendulum Paradox</h4>
+            <p class="font-sans text-[11px] sm:text-xs text-on-surface-variant mt-1">
+              Deploy Silas Drake's crimson rewind pin (-15m) to offset natural hand overshoots.
+            </p>
+          </div>
+          <div class="p-2 sm:p-2.5 rounded bg-surface-container-lowest font-mono text-[11px] sm:text-xs flex items-center justify-between border border-outline-variant/30">
+            <span>04:30 ➔ 06:15</span>
+            <span class="text-rose-400 font-bold">-15m Rewind</span>
+          </div>
+        </div>
+
+        <!-- Epoch 4 -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-surface-container border border-outline-variant/40 flex flex-col justify-between space-y-2.5 sm:space-y-3 shadow-md hover:border-primary/50 transition-all">
+          <div>
+            <div class="flex items-center justify-between font-mono text-[9px] sm:text-[10px] text-sky-400 mb-1">
+              <span>TRIAL IV</span>
+              <span class="px-1.5 py-0.5 rounded bg-surface-container-high text-outline">TIER 4</span>
+            </div>
+            <h4 class="text-base sm:text-lg font-bold text-on-surface">The Grand Regulator</h4>
+            <p class="font-sans text-[11px] sm:text-xs text-on-surface-variant mt-1">
+              High-precision micro jumps. Master Alistair's personal escapement challenge.
+            </p>
+          </div>
+          <div class="p-2 sm:p-2.5 rounded bg-surface-container-lowest font-mono text-[11px] sm:text-xs flex items-center justify-between border border-outline-variant/30">
+            <span>08:00 ➔ 10:45</span>
+            <span class="text-sky-400 font-bold">Micro Jumps</span>
+          </div>
+        </div>
+
+        <!-- Epoch 5 -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-surface-container border border-outline-variant/40 flex flex-col justify-between space-y-2.5 sm:space-y-3 shadow-md hover:border-primary/50 transition-all">
+          <div>
+            <div class="flex items-center justify-between font-mono text-[9px] sm:text-[10px] text-primary-fixed mb-1">
+              <span>TRIAL V</span>
+              <span class="px-1.5 py-0.5 rounded bg-surface-container-high text-outline">FINAL BOSS</span>
+            </div>
+            <h4 class="text-base sm:text-lg font-bold text-on-surface">The Omega Escapement</h4>
+            <p class="font-sans text-[11px] sm:text-xs text-on-surface-variant mt-1">
+              The ultimate synchronization challenge across multiple hour laps and multi-pin cascades.
+            </p>
+          </div>
+          <div class="p-2 sm:p-2.5 rounded bg-surface-container-lowest font-mono text-[11px] sm:text-xs flex items-center justify-between border border-outline-variant/30">
+            <span>12:00 ➔ 15:30</span>
+            <span class="text-primary font-bold">Master Trial</span>
+          </div>
+        </div>
+
+        <!-- Custom Sandbox Mode -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-gradient-to-br from-surface-container via-surface-container to-surface-container-high border-2 border-primary/50 flex flex-col justify-between space-y-2.5 sm:space-y-3 shadow-lg">
+          <div>
+            <div class="flex items-center justify-between font-mono text-[9px] sm:text-[10px] text-primary mb-1">
+              <span>SANDBOX ENGINE</span>
+              <span class="px-1.5 py-0.5 rounded bg-primary text-surface-container-lowest font-bold">CUSTOM</span>
+            </div>
+            <h4 class="text-base sm:text-lg font-bold text-primary">Custom Sandbox Mode</h4>
+            <p class="font-sans text-[11px] sm:text-xs text-on-surface-variant mt-1">
+              Calibrate your own Start Time, Target Time, and Run Duration to experiment freely or build custom challenges.
+            </p>
+          </div>
+          <a href="/game" class="brass-actuator py-2 px-3 rounded font-mono text-xs font-bold uppercase text-center block shadow-sm">
+            Launch Sandbox
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 6. HOW TO PLAY (THE FIELD GUIDE)                                          -->
+  <!-- ========================================================================= -->
+  <section id="rules" class="w-full py-10 sm:py-16 lg:py-24 px-3.5 sm:px-8 border-b border-outline-variant/30 bg-surface-container-lowest relative bg-guilloche">
+    <div class="max-w-4xl mx-auto space-y-6 sm:space-y-10">
+      
+      <!-- Section Header -->
+      <div class="text-center space-y-2 sm:space-y-3">
+        <div class="inline-flex items-center gap-2 font-mono text-[10px] sm:text-xs uppercase tracking-widest text-primary">
+          <span class="material-symbols-outlined text-sm">menu_book</span>
+          <span>Field Guide</span>
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-bold text-on-surface">Three Steps to Victory</h2>
+        <p class="font-sans text-xs sm:text-sm text-on-surface-variant">
+          Simple touch-friendly controls designed for mobile phones, tablets, and desktops.
+        </p>
+      </div>
+
+      <!-- Steps Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-6 font-mono text-xs">
+        
+        <!-- Step 1 -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-surface-container-low border border-outline-variant/40 space-y-2 sm:space-y-3 text-center sm:text-left">
+          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-primary text-surface-container-lowest font-bold text-sm sm:text-base flex items-center justify-center mx-auto sm:mx-0 shadow-md">
+            1
+          </div>
+          <h4 class="font-bold text-primary text-xs sm:text-sm">Check the Mission Formula</h4>
+          <p class="font-sans text-on-surface-variant text-[11px] sm:text-xs leading-relaxed">
+            Look at the dynamic formula banner at the top of the chamber. It calculates exactly how many extra minutes (+ or -) are needed to hit the target.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-surface-container-low border border-outline-variant/40 space-y-2 sm:space-y-3 text-center sm:text-left">
+          <div class="w-9 h-9 sm:w-9 sm:h-9 rounded-full bg-primary text-surface-container-lowest font-bold text-sm sm:text-base flex items-center justify-center mx-auto sm:mx-0 shadow-md">
+            2
+          </div>
+          <h4 class="font-bold text-primary text-xs sm:text-sm">Tap or Drag to Place Pins</h4>
+          <p class="font-sans text-on-surface-variant text-[11px] sm:text-xs leading-relaxed">
+            <strong>Tap-to-Place:</strong> Tap any pin in your tray, then tap any socket on the clock! You can also drag-and-drop pins directly into sockets.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-surface-container-low border border-outline-variant/40 space-y-2 sm:space-y-3 text-center sm:text-left">
+          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-primary text-surface-container-lowest font-bold text-sm sm:text-base flex items-center justify-center mx-auto sm:mx-0 shadow-md">
+            3
+          </div>
+          <h4 class="font-bold text-primary text-xs sm:text-sm">Ignite the Escapement</h4>
+          <p class="font-sans text-on-surface-variant text-[11px] sm:text-xs leading-relaxed">
+            Press <strong>IGNITE ESCAPEMENT</strong>. Watch the clock hands sweep, trigger your slotted pins, and synchronize with the target readout to win!
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 7. CALL TO ACTION BANNER                                                  -->
+  <!-- ========================================================================= -->
+  <section class="w-full py-10 sm:py-16 lg:py-20 px-3.5 sm:px-8 border-b border-outline-variant/30 bg-surface-container-high/40 text-center relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-r from-primary/5 via-secondary/10 to-primary/5 pointer-events-none"></div>
+    <div class="max-w-3xl mx-auto space-y-4 sm:space-y-6 relative z-10">
+      
+      <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-surface-container border border-primary/50 flex items-center justify-center mx-auto text-primary shadow-xl">
+        <span class="material-symbols-outlined text-2xl sm:text-3xl spin-slow">alarm</span>
+      </div>
+
+      <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-on-surface">The Great Escapement Awaits</h2>
+      <p class="font-sans text-xs sm:text-base text-on-surface-variant max-w-xl mx-auto leading-relaxed">
+        Choose your path: jump straight into the chamber as a Guest, or sign in to synchronize your victories to the Cloud Archive.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-4 pt-1 sm:pt-2">
+        <button id="btn-cta-guest" class="w-full sm:w-auto brass-actuator px-5 sm:px-8 py-2.5 sm:py-3.5 rounded-lg font-mono text-xs sm:text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl hover:scale-105 transition-transform">
+          <span class="material-symbols-outlined text-base sm:text-lg">bolt</span>
+          <span>Play as Guest (Instant Access)</span>
+        </button>
+
+        <button id="btn-cta-signin" class="w-full sm:w-auto px-4 sm:px-7 py-2.5 sm:py-3.5 rounded-lg bg-surface-container border border-primary/40 hover:border-primary text-primary font-mono text-xs sm:text-sm font-semibold uppercase tracking-wider flex items-center justify-center gap-2 transition-all">
+          <span class="material-symbols-outlined text-base sm:text-lg">lock_open</span>
+          <span>Sign In / Create Account</span>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- 8. FOOTER                                                                 -->
+  <!-- ========================================================================= -->
+  <footer class="w-full py-10 px-4 sm:px-8 bg-surface-container-lowest text-on-surface-variant font-mono text-xs border-t border-outline-variant/30">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+      
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-surface-container border border-primary/40 flex items-center justify-center text-primary">
+          <span class="material-symbols-outlined text-base">hourglass_empty</span>
+        </div>
+        <div>
+          <span class="font-bold text-primary tracking-wider uppercase text-sm block">CHRONOS</span>
+          <span class="text-[10px] text-outline">Time Manipulation Horological Puzzle Engine</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-6 text-[11px]">
+        <a href="#characters" class="hover:text-primary transition-colors">Characters</a>
+        <a href="#mechanics" class="hover:text-primary transition-colors">Mechanism</a>
+        <a href="#epochs" class="hover:text-primary transition-colors">Epoch Trials</a>
+        <a href="/game" class="hover:text-primary transition-colors font-bold text-primary">Game Chamber</a>
+      </div>
+
+      <div class="text-center md:text-right text-[10px] text-outline space-y-1">
+        <div>Network Node: <code class="text-primary-fixed">http://192.168.1.9:3000</code></div>
+        <div>Crafted with Precision Horology & Pair AI</div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- 9. AUTHENTICATION & GUEST ACCESS MODAL                                    -->
+  <!-- ========================================================================= -->
+  <div id="landing-auth-overlay" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="w-full max-w-4xl max-h-[92vh] overflow-y-auto coin-edge-border rounded-xl bg-surface-container-low border border-primary/40 shadow-2xl relative flex flex-col md:flex-row font-headline">
+      
+      <!-- Screwheads -->
+      <div class="screwhead absolute top-3 left-3 z-30"></div>
+      <div class="screwhead absolute top-3 right-3 z-30"></div>
+      <div class="screwhead absolute bottom-3 left-3 z-30"></div>
+      <div class="screwhead absolute bottom-3 right-3 z-30"></div>
+
+      <!-- Close Button -->
+      <button id="btn-landing-close-auth" class="absolute top-3 right-3 z-40 w-7 h-7 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant flex items-center justify-center text-sm font-mono">✕</button>
+
+      <!-- Left Column: Chronomancer Archive Showcase -->
+      <div class="md:w-5/12 bg-surface-container p-4 sm:p-8 border-b md:border-b-0 md:border-r border-outline-variant/40 flex flex-col justify-between">
+        <div>
+          <div class="w-14 h-14 mb-4 relative flex items-center justify-center">
+            <div class="absolute inset-0 rounded-full border-2 border-primary/40 spin-slow"></div>
+            <span class="material-symbols-outlined text-2xl text-primary">hourglass_empty</span>
+          </div>
+          <h2 class="font-headline text-lg sm:text-xl font-bold text-primary mb-1">CHRONOS ARCHIVE</h2>
+          <p class="font-mono text-[10px] uppercase tracking-wider text-on-surface-variant mb-4 pb-2 border-b border-outline-variant/30">
+            Player Profile & Cloud Progress Sync
+          </p>
+
+          <div class="space-y-2 font-mono text-[11px] mb-6">
+            <div class="flex items-center gap-2 p-2 rounded bg-surface-container-lowest/80 border border-outline-variant/30">
+              <span class="w-2 h-2 rounded-full bg-tertiary-container shadow-[0_0_8px_#7ca8ff]"></span>
+              <span>Cloud Progress & Achievement Sync</span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded bg-surface-container-lowest/80 border border-outline-variant/30">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
+              <span>24 Concentric Radial Sockets</span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded bg-surface-container-lowest/80 border border-outline-variant/30">
+              <span class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_#f59e0b]"></span>
+              <span>9-Pin Time Manipulation Matrix</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Instant Guest Launch -->
+        <button id="btn-landing-modal-guest" class="w-full py-2.5 rounded border border-primary/40 bg-surface-container-low hover:bg-surface-container-high text-primary font-mono text-xs flex items-center justify-center gap-2 transition-colors shadow-sm">
+          <span class="material-symbols-outlined text-sm">bolt</span>
+          <span>Skip & Play Immediately as Guest</span>
+        </button>
+      </div>
+
+      <!-- Right Column: Interactive Form -->
+      <div class="md:w-7/12 bg-surface-container-lowest p-4 sm:p-8 flex flex-col justify-between">
+        <div>
+          <!-- Tab Switcher -->
+          <div class="grid grid-cols-2 p-1 bg-surface-container rounded border border-outline-variant/40 mb-6 gap-1 font-mono text-xs">
+            <button id="landing-tab-signin" class="py-2 px-3 rounded-sm text-center transition-all bg-surface-container-highest text-primary border border-primary/40 font-semibold shadow-inner flex items-center justify-center gap-1.5" type="button">
+              <span class="material-symbols-outlined text-sm">lock_open</span>
+              <span>SIGN IN</span>
+            </button>
+            <button id="landing-tab-signup" class="py-2 px-3 rounded-sm text-center transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center gap-1.5" type="button">
+              <span class="material-symbols-outlined text-sm">app_registration</span>
+              <span>CREATE ACCOUNT</span>
+            </button>
+          </div>
+
+          <div class="mb-4">
+            <h3 id="landing-form-heading" class="font-headline text-base font-bold text-on-surface">Enter Chronometer Chamber</h3>
+            <p id="landing-form-subheading" class="font-mono text-[10px] text-on-surface-variant">Sign in with your researcher credentials or student handle.</p>
+          </div>
+
+          <!-- Alert message -->
+          <div id="landing-auth-error" class="hidden mb-4 p-2 rounded bg-rose-950/60 border border-rose-500/60 text-rose-300 font-mono text-[11px]"></div>
+
+          <!-- Form -->
+          <form id="landing-auth-form" class="space-y-3 font-mono text-xs">
+            <div>
+              <label class="block text-[10px] uppercase text-outline mb-1">Researcher Handle / Student Roll ID</label>
+              <input id="landing-handle-input" required class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="e.g. CHRONO-2024 or Aalok_Dev" value="CHRONO-2024"/>
+            </div>
+
+            <div id="landing-email-group" class="hidden">
+              <label class="block text-[10px] uppercase text-outline mb-1">Scholar Email</label>
+              <input id="landing-email-input" type="email" class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="player@chronos.game" value="player@chronos.game"/>
+            </div>
+
+            <div>
+              <label class="block text-[10px] uppercase text-outline mb-1">Temporal Passkey (Password)</label>
+              <input id="landing-passkey-input" required type="password" class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="••••••••••••" value="Escapement99"/>
+            </div>
+
+            <button type="submit" class="brass-actuator w-full py-2.5 rounded font-bold uppercase tracking-wider flex items-center justify-center gap-2 mt-4 shadow-md">
+              <span class="material-symbols-outlined text-base">lock_open</span>
+              <span id="landing-auth-submit-label">UNLOCK & ENTER CHAMBER</span>
+            </button>
+          </form>
+
+          <!-- Quick Autofill Box for Evaluation -->
+          <div class="mt-4 p-2 rounded bg-surface-container border border-outline-variant/40 flex items-center justify-between font-mono text-[10px]">
+            <div>
+              <span class="text-outline uppercase block">Demo Credentials:</span>
+              <code class="text-primary-fixed">CHRONO-2024 / Escapement99</code>
+            </div>
+            <button id="btn-landing-autofill" type="button" class="px-2 py-1 bg-surface-container-high text-primary rounded border border-primary/30 uppercase text-[9px]">Autofill</button>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-2 border-t border-outline-variant/30 text-center font-mono text-[9px] text-outline">
+          MySQL Persistence Enabled • Cross-Device Sync
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/auth.js"></script>
+  <script src="/js/landing.js"></script>
+</body>
+</html>

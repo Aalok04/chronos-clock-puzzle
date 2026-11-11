@@ -1,0 +1,213 @@
+/* ==========================================================================
+   CHRONOS: Time Manipulation Clock Puzzle
+   Haute Horlogerie & Victorian Steampunk Theme
+   ========================================================================== */
+
+:root {
+  --color-obsidian: #0c0e14;
+  --color-slate-base: #111319;
+  --color-slate-deck: #1a1f2c;
+  --color-slate-high: #282a30;
+  --color-brass-primary: #cda250;
+  --color-brass-highlight: #eec06a;
+  --color-copper-deep: #b86b43;
+  --color-copper-bright: #ffb692;
+  --color-emerald-pin: #10b981;
+  --color-ruby-pin: #ef4444;
+  --color-sapphire-pin: #2e82ff;
+}
+
+/* Background Micro-textures */
+.bg-grid-dots {
+  background-image: radial-gradient(rgba(205, 162, 80, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-guilloche {
+  background-image: radial-gradient(rgba(205, 162, 80, 0.08) 1px, transparent 0);
+  background-size: 16px 16px;
+}
+
+/* Coin Edge & Steampunk Borders */
+.coin-edge-border {
+  box-shadow: inset 0 0 0 1px rgba(205, 162, 80, 0.4),
+              inset 0 0 0 2px rgba(12, 14, 20, 0.8),
+              0 12px 40px rgba(0, 0, 0, 0.85);
+}
+
+.clock-bezel-shadow {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), inset 0 0 40px rgba(0, 0, 0, 0.9);
+}
+
+/* Screwhead Ornamentation */
+.screwhead {
+  width: 10px;
+  height: 10px;
+  background: linear-gradient(135deg, #eec06a 0%, #7b5809 100%);
+  border-radius: 50%;
+  position: relative;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.screwhead::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 1px;
+  width: 8px;
+  height: 1.5px;
+  background: #271900;
+  transform: rotate(42deg);
+}
+
+/* Tactile Brass Actuator Buttons */
+.brass-actuator {
+  background: linear-gradient(180deg, #ffdea7 0%, #eec06a 40%, #cda250 85%, #9b7226 100%);
+  box-shadow: 0 4px 14px rgba(205, 162, 80, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -2px 0 rgba(82, 57, 0, 0.6);
+  color: #271900;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.brass-actuator:hover {
+  filter: brightness(1.1);
+}
+
+.brass-actuator:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 4px rgba(205, 162, 80, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.copper-actuator {
+  background: linear-gradient(180deg, #ffdbcb 0%, #ffb692 40%, #b86b43 85%, #763713 100%);
+  box-shadow: 0 4px 14px rgba(184, 107, 67, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -2px 0 rgba(86, 32, 0, 0.6);
+  color: #341100;
+}
+
+.copper-actuator:hover {
+  filter: brightness(1.1);
+}
+
+.copper-actuator:active {
+  transform: translateY(2px);
+}
+
+/* Animations */
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes spin-reverse-slow {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes pulse-aether {
+  0%, 100% { opacity: 0.65; filter: drop-shadow(0 0 6px rgba(173, 198, 255, 0.6)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 16px rgba(173, 198, 255, 0.9)); }
+}
+
+@keyframes pulse-pin-glow {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px currentColor); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 20px currentColor); }
+}
+
+.spin-slow {
+  animation: spin-slow 90s linear infinite;
+}
+
+.spin-reverse-slow {
+  animation: spin-reverse-slow 60s linear infinite;
+}
+
+.anim-aether {
+  animation: pulse-aether 3s ease-in-out infinite;
+}
+
+/* Pin Styling & Hover Effects */
+.pin-item {
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.pin-item:active {
+  cursor: grabbing;
+}
+
+.pin-item.dragging {
+  opacity: 0.9;
+  transform: scale(1.2);
+  z-index: 1000 !important;
+  pointer-events: none;
+}
+
+/* Tap-to-Place Selected Pin State */
+.pin-item.selected {
+  transform: scale(1.18);
+  box-shadow: 0 0 0 3px #ffdea7, 0 0 18px #eec06a, 0 4px 12px rgba(0, 0, 0, 0.8) !important;
+  animation: pulse-pin-glow 0.8s ease-in-out infinite alternate;
+  z-index: 50 !important;
+}
+
+/* Socket Highlights & Interactive Jewel Cups */
+.socket-hole {
+  touch-action: none;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.socket-hole:hover {
+  transform: translate(-50%, -50%) scale(1.15) !important;
+}
+
+.socket-hole.valid-hover {
+  transform: translate(-50%, -50%) scale(1.28) !important;
+  filter: drop-shadow(0 0 14px #eec06a) !important;
+  border-color: #ffdea7 !important;
+  border-width: 2px !important;
+}
+
+/* Subtle glow on all sockets when a pin is selected in tap-to-place mode */
+.socket-hole.ready-for-placement {
+  border-color: rgba(238, 192, 106, 0.6) !important;
+  box-shadow: 0 0 8px rgba(238, 192, 106, 0.4);
+  cursor: pointer;
+}
+
+/* Walkthrough or Hint Target Beacon */
+.socket-hole.hint-target {
+  border-color: #ffdea7 !important;
+  border-width: 2.5px !important;
+  box-shadow: 0 0 20px #eec06a, inset 0 0 8px #eec06a !important;
+  animation: pulse-pin-glow 0.6s ease-in-out infinite alternate;
+  z-index: 40 !important;
+}
+
+.socket-hole.has-pin {
+  cursor: pointer;
+}
+
+.socket-hole.has-pin:hover {
+  filter: brightness(1.2) drop-shadow(0 0 10px currentColor);
+}
+
+/* Active Pin Explosion / Ripple Glow */
+.pin-activating {
+  animation: pulse-pin-glow 0.6s ease-in-out infinite alternate;
+}
+
+/* Hand Transition Smoothing */
+.clock-hand {
+  transform-origin: 300px 300px;
+  will-change: transform;
+}
+
+.clock-hand.smooth-transition {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clock-hand.rewind-transition {
+  transition: transform 1.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
