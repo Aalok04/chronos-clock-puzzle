@@ -603,16 +603,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    // Autofill Demo Button
-    const btnAutofill = document.getElementById('btn-modal-autofill');
-    if (btnAutofill) {
-      btnAutofill.addEventListener('click', () => {
-        document.getElementById('modal-handle-input').value = 'CHRONO-2024';
-        document.getElementById('modal-passkey-input').value = 'Escapement99';
-        showFloatingNotification('Demo credentials loaded.', '#2e82ff');
-      });
-    }
-
     // Guest Mode Button
     const btnGuest = document.getElementById('btn-modal-guest');
     if (btnGuest) {

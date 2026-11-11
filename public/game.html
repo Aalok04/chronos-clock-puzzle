@@ -769,17 +769,17 @@
           <form id="modal-auth-form" class="space-y-3 font-mono text-xs">
             <div>
               <label class="block text-[10px] uppercase text-outline mb-1">Researcher Handle / Student Roll ID</label>
-              <input id="modal-handle-input" required class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="e.g. CHRONO-2024 or Aalok_Dev" value="CHRONO-2024"/>
+              <input id="modal-handle-input" required class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="e.g. ChronoScholar or your name"/>
             </div>
 
             <div id="modal-email-group" class="hidden">
               <label class="block text-[10px] uppercase text-outline mb-1">Scholar Email</label>
-              <input id="modal-email-input" type="email" class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="player@chronos.game" value="player@chronos.game"/>
+              <input id="modal-email-input" type="email" class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="your.email@example.com"/>
             </div>
 
             <div>
               <label class="block text-[10px] uppercase text-outline mb-1">Temporal Passkey (Password)</label>
-              <input id="modal-passkey-input" required type="password" class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="••••••••••••" value="Escapement99"/>
+              <input id="modal-passkey-input" required type="password" class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="Enter your password"/>
             </div>
 
             <button type="submit" class="brass-actuator w-full py-2.5 rounded font-bold uppercase tracking-wider flex items-center justify-center gap-2 mt-4 shadow-md">
@@ -787,15 +787,6 @@
               <span id="modal-auth-submit-label">UNLOCK CHRONOMETER CHAMBER</span>
             </button>
           </form>
-
-          <!-- Quick Autofill Box for Evaluation -->
-          <div class="mt-4 p-2 rounded bg-surface-container border border-outline-variant/40 flex items-center justify-between font-mono text-[10px]">
-            <div>
-              <span class="text-outline uppercase block">Demo Credentials:</span>
-              <code class="text-primary-fixed">CHRONO-2024 / Escapement99</code>
-            </div>
-            <button id="btn-modal-autofill" type="button" class="px-2 py-1 bg-surface-container-high text-primary rounded border border-primary/30 uppercase text-[9px]">Autofill</button>
-          </div>
         </div>
 
         <div class="mt-4 pt-2 border-t border-outline-variant/30 text-center font-mono text-[9px] text-outline">

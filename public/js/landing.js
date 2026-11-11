@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const emailGroup = document.getElementById('landing-email-group');
   const submitLabel = document.getElementById('landing-auth-submit-label');
   const authError = document.getElementById('landing-auth-error');
-  const btnAutofill = document.getElementById('btn-landing-autofill');
   const btnModalGuest = document.getElementById('btn-landing-modal-guest');
 
   // Header User Profile
@@ -121,14 +120,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Autofill button
-  if (btnAutofill) {
-    btnAutofill.addEventListener('click', () => {
-      document.getElementById('landing-handle-input').value = 'CHRONO-2024';
-      document.getElementById('landing-passkey-input').value = 'Escapement99';
-      updateModalMode('signin');
-    });
-  }
 
   // Logout
   if (btnNavLogout) {
