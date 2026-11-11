@@ -231,11 +231,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       const yPercent = 50 + outerRadiusPercent * Math.sin(rad);
 
       const socket = document.createElement('div');
-      socket.className = 'socket-hole absolute rounded-full border border-sky-400/60 bg-surface-container-lowest/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.85)] flex items-center justify-center transition-all cursor-pointer w-7 h-7 sm:w-8 sm:h-8 z-20';
+      socket.className = 'socket-hole absolute rounded-full border border-sky-400/60 bg-surface-container-lowest/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.85)] flex items-center justify-center transition-all cursor-pointer w-5 h-5 sm:w-6 sm:h-6 z-20';
       socket.style.left = `${xPercent.toFixed(3)}%`;
       socket.style.top = `${yPercent.toFixed(3)}%`;
       socket.style.transform = 'translate(-50%, -50%)';
-      socket.innerHTML = `<span class="text-[7px] sm:text-[8px] font-mono font-bold text-sky-400/80 pointer-events-none select-none">${i * 5}m</span>`;
+      socket.innerHTML = '';
       socket.title = `Outer Socket: ${i * 5}m (Triggered by Minute Hand)`;
 
       dragManager.attachClockSocket(socket, 'outer', i);
@@ -252,11 +252,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       const yPercent = 50 + innerRadiusPercent * Math.sin(rad);
 
       const socket = document.createElement('div');
-      socket.className = 'socket-hole absolute rounded-full border border-amber-400/60 bg-surface-container-lowest/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.85)] flex items-center justify-center transition-all cursor-pointer w-6 h-6 sm:w-7 sm:h-7 z-20';
+      socket.className = 'socket-hole absolute rounded-full border border-amber-400/60 bg-surface-container-lowest/90 shadow-[inset_0_2px_4px_rgba(0,0,0,0.85)] flex items-center justify-center transition-all cursor-pointer w-4 h-4 sm:w-5 sm:h-5 z-20';
       socket.style.left = `${xPercent.toFixed(3)}%`;
       socket.style.top = `${yPercent.toFixed(3)}%`;
       socket.style.transform = 'translate(-50%, -50%)';
-      socket.innerHTML = `<span class="text-[7px] sm:text-[8px] font-mono font-bold text-amber-400/90 pointer-events-none select-none">${hourVal}h</span>`;
+      socket.innerHTML = '';
       socket.title = `Inner Socket: Hour ${hourVal} (Triggered by Hour Hand)`;
 
       dragManager.attachClockSocket(socket, 'inner', i);
@@ -281,16 +281,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     dragManager.pins.forEach(pin => {
       if (pin.location === 'inventory') {
         const pinEl = document.createElement('div');
-        pinEl.className = 'pin-item w-10 h-10 rounded-full flex flex-col items-center justify-center shadow-md border-2 relative cursor-grab active:cursor-grabbing hover:scale-105';
+        pinEl.className = 'pin-item w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-md border-2 relative cursor-grab active:cursor-grabbing hover:scale-110 flex items-center justify-center shrink-0';
         pinEl.style.backgroundColor = pin.bgHex;
         pinEl.style.borderColor = pin.borderHex;
-        pinEl.style.color = pin.textHex;
-        pinEl.style.boxShadow = `0 2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.4)`;
-        pinEl.innerHTML = `
-          <span class="text-[9px] font-bold font-mono leading-none">${pin.label}</span>
-          <span class="text-[7px] opacity-70">${pin.symbol}</span>
-        `;
-        pinEl.title = `Drag to Clock: ${pin.label} (${pin.type})`;
+        pinEl.style.boxShadow = `0 2px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.4)`;
+        pinEl.innerHTML = '';
+        pinEl.title = `Time Pin: ${pin.label} (${pin.type})`;
 
         dragManager.attachInventoryPin(pinEl, pin.id);
 
@@ -311,21 +307,18 @@ document.addEventListener('DOMContentLoaded', async () => {
           socketEl.classList.add('has-pin');
           socketEl.style.backgroundColor = pin.bgHex;
           socketEl.style.borderColor = pin.borderHex;
-          socketEl.style.boxShadow = `0 0 14px ${pin.bgHex}, inset 0 1px 0 rgba(255,255,255,0.4)`;
-          socketEl.innerHTML = `
-            <span class="text-[7px] sm:text-[8px] font-bold font-mono text-white select-none pointer-events-none leading-none">${pin.label}</span>
-          `;
+          socketEl.style.boxShadow = `0 0 12px ${pin.bgHex}, inset 0 1px 0 rgba(255,255,255,0.4)`;
+          socketEl.innerHTML = '';
           socketEl.title = `Slotted: ${pin.label} (${circle === 'outer' ? (i * 5) + 'm' : (i + 1) + 'h'}) — Click to remove`;
         } else {
           socketEl.classList.remove('has-pin');
           socketEl.style.backgroundColor = '';
           socketEl.style.borderColor = '';
           socketEl.style.boxShadow = '';
+          socketEl.innerHTML = '';
           if (circle === 'outer') {
-            socketEl.innerHTML = `<span class="text-[7px] sm:text-[8px] font-mono font-bold text-sky-400/80 pointer-events-none select-none">${i * 5}m</span>`;
             socketEl.title = `Outer Socket: ${i * 5}m (Triggered by Minute Hand)`;
           } else {
-            socketEl.innerHTML = `<span class="text-[7px] sm:text-[8px] font-mono font-bold text-amber-400/90 pointer-events-none select-none">${i + 1}h</span>`;
             socketEl.title = `Inner Socket: Hour ${i + 1} (Triggered by Hour Hand)`;
           }
         }

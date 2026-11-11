@@ -172,7 +172,7 @@ class PinDragDropManager {
     if (!this.activeDrag) return;
 
     const { ghost } = this.activeDrag;
-    ghost.style.transform = `translate(${event.clientX - 19}px, ${event.clientY - 19}px) scale(1.15)`;
+    ghost.style.transform = `translate(${event.clientX - 14}px, ${event.clientY - 14}px) scale(1.15)`;
 
     // Detect nearest clock socket hole
     const targetSocket = this.findNearestSocket(event.clientX, event.clientY);
@@ -190,15 +190,14 @@ class PinDragDropManager {
     const { pin, sourceEl, sourceCircle, sourceIndex } = pending;
 
     const ghost = document.createElement('div');
-    ghost.className = 'fixed pointer-events-none z-[9999] flex items-center justify-center rounded-full shadow-2xl transition-transform';
-    ghost.style.width = '38px';
-    ghost.style.height = '38px';
+    ghost.className = 'fixed pointer-events-none z-[9999] rounded-full shadow-2xl transition-transform';
+    ghost.style.width = '28px';
+    ghost.style.height = '28px';
     ghost.style.backgroundColor = pin.bgHex;
     ghost.style.border = `2px solid ${pin.borderHex}`;
-    ghost.style.color = pin.textHex;
     ghost.style.boxShadow = `0 0 16px ${pin.bgHex}, 0 4px 12px rgba(0,0,0,0.8)`;
-    ghost.innerHTML = `<span class="text-[9px] font-bold font-mono tracking-tight">${pin.label}</span>`;
-    ghost.style.transform = `translate(${event.clientX - 19}px, ${event.clientY - 19}px) scale(1.15)`;
+    ghost.innerHTML = '';
+    ghost.style.transform = `translate(${event.clientX - 14}px, ${event.clientY - 14}px) scale(1.15)`;
 
     document.body.appendChild(ghost);
 
