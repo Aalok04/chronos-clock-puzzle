@@ -3,6 +3,20 @@
    Haute Horlogerie & Victorian Steampunk Theme
    ========================================================================== */
 
+/* Strict Viewport & Mobile Overflow Reset */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 :root {
   --color-obsidian: #0c0e14;
   --color-slate-base: #111319;

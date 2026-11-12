@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html class="dark overflow-x-hidden" lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
   <title>CHRONOS: Time Manipulation Clock Puzzle</title>
   
   <!-- Fonts -->
@@ -59,58 +59,58 @@
   <!-- ========================================================================= -->
   <!-- 1. TOP APP BAR                                                            -->
   <!-- ========================================================================= -->
-  <header class="flex flex-wrap justify-between items-center w-full px-6 py-3 border-b border-outline-variant/30 bg-surface-container-lowest shadow-[0_8px_24px_rgba(0,0,0,0.8)] z-40 shrink-0">
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-full bg-surface-container-high border border-primary/40 flex items-center justify-center shadow-inner">
-        <span class="material-symbols-outlined text-primary text-[20px] spin-slow">settings</span>
+  <header class="flex flex-wrap justify-between items-center w-full px-3 sm:px-6 py-2 sm:py-3 border-b border-outline-variant/30 bg-surface-container-lowest shadow-[0_8px_24px_rgba(0,0,0,0.8)] z-40 shrink-0">
+    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+      <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-surface-container-high border border-primary/40 flex items-center justify-center shadow-inner shrink-0">
+        <span class="material-symbols-outlined text-primary text-[18px] sm:text-[20px] spin-slow">settings</span>
       </div>
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="text-xl font-bold tracking-widest text-primary uppercase">CHRONOS</span>
-          <span class="text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-primary/10 border border-primary/30 text-primary-fixed">Puzzle Edition</span>
+      <div class="min-w-0">
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <span class="text-base sm:text-xl font-bold tracking-widest text-primary uppercase">CHRONOS</span>
+          <span class="text-[8px] sm:text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-primary/10 border border-primary/30 text-primary-fixed hidden xs:inline">Puzzle Edition</span>
         </div>
-        <p class="font-mono text-on-surface-variant text-[10px] tracking-wider">Time Manipulation Puzzle Game</p>
+        <p class="hidden sm:block font-mono text-on-surface-variant text-[10px] tracking-wider truncate">Time Manipulation Puzzle Game</p>
       </div>
     </div>
 
 
 
     <!-- Trailing Actions & Profile -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
       <!-- Return to Home Page -->
-      <a href="/" class="px-2.5 py-1.5 rounded bg-surface-container border border-outline-variant/40 hover:border-primary/50 text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1.5 font-mono text-xs shadow-sm" title="Return to Main Home">
-        <span class="material-symbols-outlined text-[16px]">home</span>
+      <a href="/" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded bg-surface-container border border-outline-variant/40 hover:border-primary/50 text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 font-mono text-[11px] sm:text-xs shadow-sm" title="Return to Main Home">
+        <span class="material-symbols-outlined text-[15px] sm:text-[16px]">home</span>
         <span class="hidden sm:inline">Home</span>
       </a>
 
-      <button aria-label="Toggle Audio" data-action="toggle-audio" class="p-2 rounded bg-surface-container border border-outline-variant/40 hover:border-primary/50 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center" title="Toggle Resonance Audio">
-        <span class="material-symbols-outlined text-[18px]">volume_up</span>
+      <button aria-label="Toggle Audio" data-action="toggle-audio" class="p-1.5 sm:p-2 rounded bg-surface-container border border-outline-variant/40 hover:border-primary/50 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center" title="Toggle Resonance Audio">
+        <span class="material-symbols-outlined text-[16px] sm:text-[18px]">volume_up</span>
       </button>
 
-      <button id="btn-open-tutorial" class="px-2.5 py-1.5 rounded bg-surface-container border border-primary/50 text-primary hover:bg-primary/10 transition-colors flex items-center gap-1.5 font-mono text-xs font-semibold shadow-sm" title="Learn How to Play">
-        <span class="material-symbols-outlined text-[16px]">help</span>
+      <button id="btn-open-tutorial" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded bg-surface-container border border-primary/50 text-primary hover:bg-primary/10 transition-colors flex items-center gap-1 font-mono text-[11px] sm:text-xs font-semibold shadow-sm" title="Learn How to Play">
+        <span class="material-symbols-outlined text-[15px] sm:text-[16px]">help</span>
         <span class="hidden sm:inline">How to Play</span>
       </button>
 
-      <button id="btn-open-settings" class="px-2.5 py-1.5 rounded bg-surface-container border border-primary/50 text-primary hover:bg-primary/10 transition-colors flex items-center gap-1.5 font-mono text-xs font-semibold shadow-sm" title="Custom Challenge & Friend Duel">
-        <span class="material-symbols-outlined text-[16px]">swords</span>
+      <button id="btn-open-settings" class="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded bg-surface-container border border-primary/50 text-primary hover:bg-primary/10 transition-colors flex items-center gap-1 font-mono text-[11px] sm:text-xs font-semibold shadow-sm" title="Custom Challenge & Friend Duel">
+        <span class="material-symbols-outlined text-[15px] sm:text-[16px]">swords</span>
         <span class="hidden sm:inline">Challenge / Duel</span>
       </button>
 
       <!-- Player Profile Container -->
-      <div id="user-profile-bar" class="hidden flex items-center gap-3 pl-2 border-l border-outline-variant/40">
-        <div class="flex flex-col text-right">
-          <span id="player-username" class="font-mono text-xs font-bold text-primary">TimeKeeper</span>
+      <div id="user-profile-bar" class="hidden flex items-center gap-2 sm:gap-3 pl-1.5 sm:pl-2 border-l border-outline-variant/40">
+        <div class="hidden xs:flex flex-col text-right">
+          <span id="player-username" class="font-mono text-xs font-bold text-primary truncate max-w-[80px]">TimeKeeper</span>
           <span id="player-rank" class="font-mono text-[10px] text-secondary">Apprentice</span>
         </div>
-        <button id="btn-logout" class="px-2.5 py-1 bg-surface-container-high border border-outline-variant/60 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all rounded font-mono text-[10px] uppercase shadow-sm">
+        <button id="btn-logout" class="px-2 sm:px-2.5 py-1 bg-surface-container-high border border-outline-variant/60 hover:border-primary/60 text-on-surface-variant hover:text-primary transition-all rounded font-mono text-[10px] uppercase shadow-sm">
           Logout
         </button>
       </div>
 
       <!-- Guest / Not Logged In Button -->
-      <button id="btn-open-auth" class="brass-actuator px-3.5 py-1.5 rounded font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md">
-        <span class="material-symbols-outlined text-sm">lock_open</span>
+      <button id="btn-open-auth" class="brass-actuator px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded font-mono text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1 sm:gap-1.5 shadow-md">
+        <span class="material-symbols-outlined text-xs sm:text-sm">lock_open</span>
         <span>Sign In</span>
       </button>
     </div>
