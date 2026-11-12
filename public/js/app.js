@@ -179,7 +179,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (socketEl) {
       if (phase === 'PRE_PAUSE') {
         socketEl.classList.add('pin-activating');
-        showFloatingNotification(`⚡ Pin Engaged: ${pin.label}`, pin.bgHex);
+        let triggerMsg = pin.label;
+        if (circle === 'inner') {
+          if (pin.label === '+1/3' || pin.type === 'forward-high') triggerMsg = '+1/3 (Hour Hand +4h [12/3])';
+          else if (pin.label === '-1/4' || pin.type === 'backward') triggerMsg = '-1/4 (Hour Hand -3h [12/4])';
+          else if (pin.label === '+1/6' || pin.type === 'forward-low') triggerMsg = '+1/6 (Hour Hand +2h [12/6])';
+        } else {
+          if (pin.label === '+1/3') triggerMsg = '+1/3 (Minute Hand +20m [60/3])';
+          else if (pin.label === '-1/4') triggerMsg = '-1/4 (Minute Hand -15m [60/4])';
+          else if (pin.label === '+1/6') triggerMsg = '+1/6 (Minute Hand +10m [60/6])';
+        }
+        showFloatingNotification(`⚡ Pin Engaged: ${triggerMsg}`, pin.bgHex);
       } else if (phase === 'POST_RESUME') {
         socketEl.classList.remove('pin-activating');
       }
@@ -359,7 +369,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           socketEl.style.borderColor = pin.borderHex;
           socketEl.style.boxShadow = `0 0 12px ${pin.bgHex}, inset 0 1px 0 rgba(255,255,255,0.4)`;
           socketEl.innerHTML = '';
-          socketEl.title = `Slotted: ${pin.label} (${circle === 'outer' ? (i * 5) + 'm' : (i + 1) + 'h'}) — Click to remove`;
+          const effectDesc = circle === 'outer'
+            ? `${pin.label === '+1/3' ? '+20m' : (pin.label === '-1/4' ? '-15m' : '+10m')} on minute sweep`
+            : `${pin.label === '+1/3' ? '+4h (12/3)' : (pin.label === '-1/4' ? '-3h (12/4)' : '+2h (12/6)')} on hour sweep`;
+          socketEl.title = `Slotted: ${pin.label} (${circle === 'outer' ? (i * 5) + 'm' : (i + 1) + 'h'} socket ➔ ${effectDesc}) — Click to remove`;
         } else {
           socketEl.classList.remove('has-pin');
           socketEl.style.backgroundColor = '';
@@ -1014,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (formulaCard) formulaCard.classList.add('ring-2', 'ring-primary');
     } else if (walkthroughStep === 2) {
       walkthroughTitle.textContent = 'Walkthrough: Step 2 of 4 (Choose Pin)';
-      walkthroughDesc.textContent = 'Tap or select a Green (+1/3) Pin from your Pin Tray directly below the clock.';
+      walkthroughDesc.textContent = 'Tap or drag a Green (+1/3) Pin from the Time Pin Matrix on the right side panel.';
       btnWalkthroughNext.textContent = 'Next: Choose Socket ➔';
 
       const trayFh = document.getElementById('tray-pins-fh');

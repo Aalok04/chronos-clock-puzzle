@@ -12,20 +12,20 @@ class PinDragDropManager {
 
     // Initial 9-Pin Inventory Definition (Exclusively Fractions)
     this.pins = [
-      // 3x Forward High (+1/3 hr = +20m on outer, +1h on inner)
-      { id: 'pin-fh-1', type: 'forward-high', deltaMinutes: 20, label: '+1/3', symbol: '»', color: 'emerald', bgHex: '#10b981', borderHex: '#34d399', textHex: '#ffffff', location: 'inventory' },
-      { id: 'pin-fh-2', type: 'forward-high', deltaMinutes: 20, label: '+1/3', symbol: '»', color: 'emerald', bgHex: '#10b981', borderHex: '#34d399', textHex: '#ffffff', location: 'inventory' },
-      { id: 'pin-fh-3', type: 'forward-high', deltaMinutes: 20, label: '+1/3', symbol: '»', color: 'emerald', bgHex: '#10b981', borderHex: '#34d399', textHex: '#ffffff', location: 'inventory' },
+      // 3x Forward High (+1/3: +20m on Minute Hand [60/3], +4h on Hour Hand [12/3])
+      { id: 'pin-fh-1', type: 'forward-high', deltaMinutes: 20, deltaHours: 4, label: '+1/3', symbol: '»', color: 'emerald', bgHex: '#10b981', borderHex: '#34d399', textHex: '#ffffff', location: 'inventory' },
+      { id: 'pin-fh-2', type: 'forward-high', deltaMinutes: 20, deltaHours: 4, label: '+1/3', symbol: '»', color: 'emerald', bgHex: '#10b981', borderHex: '#34d399', textHex: '#ffffff', location: 'inventory' },
+      { id: 'pin-fh-3', type: 'forward-high', deltaMinutes: 20, deltaHours: 4, label: '+1/3', symbol: '»', color: 'emerald', bgHex: '#10b981', borderHex: '#34d399', textHex: '#ffffff', location: 'inventory' },
 
-      // 3x Backward (-1/4 hr = -15m on outer, -1h on inner)
-      { id: 'pin-bw-1', type: 'backward', deltaMinutes: -15, label: '-1/4', symbol: '«', color: 'ruby', bgHex: '#ef4444', borderHex: '#f87171', textHex: '#ffffff', location: 'inventory' },
-      { id: 'pin-bw-2', type: 'backward', deltaMinutes: -15, label: '-1/4', symbol: '«', color: 'ruby', bgHex: '#ef4444', borderHex: '#f87171', textHex: '#ffffff', location: 'inventory' },
-      { id: 'pin-bw-3', type: 'backward', deltaMinutes: -15, label: '-1/4', symbol: '«', color: 'ruby', bgHex: '#ef4444', borderHex: '#f87171', textHex: '#ffffff', location: 'inventory' },
+      // 3x Backward (-1/4: -15m on Minute Hand [-60/4], -3h on Hour Hand [-12/4])
+      { id: 'pin-bw-1', type: 'backward', deltaMinutes: -15, deltaHours: -3, label: '-1/4', symbol: '«', color: 'ruby', bgHex: '#ef4444', borderHex: '#f87171', textHex: '#ffffff', location: 'inventory' },
+      { id: 'pin-bw-2', type: 'backward', deltaMinutes: -15, deltaHours: -3, label: '-1/4', symbol: '«', color: 'ruby', bgHex: '#ef4444', borderHex: '#f87171', textHex: '#ffffff', location: 'inventory' },
+      { id: 'pin-bw-3', type: 'backward', deltaMinutes: -15, deltaHours: -3, label: '-1/4', symbol: '«', color: 'ruby', bgHex: '#ef4444', borderHex: '#f87171', textHex: '#ffffff', location: 'inventory' },
 
-      // 3x Forward Low (+1/6 hr = +10m on outer, +1h on inner)
-      { id: 'pin-fl-1', type: 'forward-low', deltaMinutes: 10, label: '+1/6', symbol: '>', color: 'sapphire', bgHex: '#2e82ff', borderHex: '#7ca8ff', textHex: '#ffffff', location: 'inventory' },
-      { id: 'pin-fl-2', type: 'forward-low', deltaMinutes: 10, label: '+1/6', symbol: '>', color: 'sapphire', bgHex: '#2e82ff', borderHex: '#7ca8ff', textHex: '#ffffff', location: 'inventory' },
-      { id: 'pin-fl-3', type: 'forward-low', deltaMinutes: 10, label: '+1/6', symbol: '>', color: 'sapphire', bgHex: '#2e82ff', borderHex: '#7ca8ff', textHex: '#ffffff', location: 'inventory' }
+      // 3x Forward Low (+1/6: +10m on Minute Hand [60/6], +2h on Hour Hand [12/6])
+      { id: 'pin-fl-1', type: 'forward-low', deltaMinutes: 10, deltaHours: 2, label: '+1/6', symbol: '>', color: 'sapphire', bgHex: '#2e82ff', borderHex: '#7ca8ff', textHex: '#ffffff', location: 'inventory' },
+      { id: 'pin-fl-2', type: 'forward-low', deltaMinutes: 10, deltaHours: 2, label: '+1/6', symbol: '>', color: 'sapphire', bgHex: '#2e82ff', borderHex: '#7ca8ff', textHex: '#ffffff', location: 'inventory' },
+      { id: 'pin-fl-3', type: 'forward-low', deltaMinutes: 10, deltaHours: 2, label: '+1/6', symbol: '>', color: 'sapphire', bgHex: '#2e82ff', borderHex: '#7ca8ff', textHex: '#ffffff', location: 'inventory' }
     ];
 
     this.pendingPointer = null; // Potential drag waiting for 8px movement threshold

@@ -129,9 +129,14 @@
   touch-action: none;
   cursor: grab;
   user-select: none;
-  transition: transform 0.15s ease, filter 0.15s ease;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
   position: relative;
   overflow: hidden;
+}
+
+.pin-item:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 12px rgba(238, 192, 106, 0.6), 0 3px 8px rgba(0, 0, 0, 0.6) !important;
 }
 
 .pin-item::after,

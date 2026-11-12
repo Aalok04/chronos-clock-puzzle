@@ -287,11 +287,25 @@ class ClockEngine {
     await this.delay(350);
 
     // 2. Apply Time Delta:
-    // If Outer Ring (Minute Hand): applies minute fraction (+20m / +1/3, -15m / -1/4, +10m / +1/6)
-    // If Inner Ring (Hour Hand): Minute hand stops at current minute, Hour hand steps (+1h / -1h)
+    // If Outer Ring (Minute Hand): applies fraction of 60 minutes
+    //   +1/3 -> 60 / 3 = +20 minutes
+    //   -1/4 -> -60 / 4 = -15 minutes
+    //   +1/6 -> 60 / 6 = +10 minutes
+    // If Inner Ring (Hour Hand): applies fraction of 12 hours (Minute hand stays still, Hour hand steps)
+    //   +1/3 -> 12 / 3 = +4 hours (+240 minutes)
+    //   -1/4 -> -12 / 4 = -3 hours (-180 minutes)
+    //   +1/6 -> 12 / 6 = +2 hours (+120 minutes)
     let timeAdjustment = pin.deltaMinutes;
     if (circle === 'inner') {
-      timeAdjustment = pin.deltaMinutes < 0 ? -60 : 60;
+      if (pin.label === '+1/3' || pin.type === 'forward-high' || pin.deltaMinutes === 20) {
+        timeAdjustment = 4 * 60; // 12 / 3 = +4 hours
+      } else if (pin.label === '-1/4' || pin.type === 'backward' || pin.deltaMinutes === -15) {
+        timeAdjustment = -3 * 60; // -12 / 4 = -3 hours
+      } else if (pin.label === '+1/6' || pin.type === 'forward-low' || pin.deltaMinutes === 10) {
+        timeAdjustment = 2 * 60; // 12 / 6 = +2 hours
+      } else {
+        timeAdjustment = pin.deltaMinutes < 0 ? -3 * 60 : 4 * 60;
+      }
     }
     this.displayedTimeMins += timeAdjustment;
 
