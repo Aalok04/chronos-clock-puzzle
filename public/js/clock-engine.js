@@ -56,7 +56,16 @@ class ClockEngine {
   }
 
   setTimeSettings(startTime, targetTime, durationMins) {
-    if (this.state !== 'IDLE') return false;
+    return this.resetLevel(startTime, targetTime, durationMins);
+  }
+
+  resetLevel(startTime, targetTime, durationMins) {
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+
+    this.state = 'IDLE';
     this.startTimeStr = startTime || this.startTimeStr;
     this.targetTimeStr = targetTime || this.targetTimeStr;
     this.runningDurationMins = durationMins || this.runningDurationMins;
@@ -66,7 +75,15 @@ class ClockEngine {
 
     this.displayedTimeMins = this.startTimeMins;
     this.elapsedDurationMins = 0;
-    this.notifyTick();
+
+    // Reset runtime flags on all placed pins
+    ['outer', 'inner'].forEach(circle => {
+      this.sockets[circle].forEach(pin => {
+        if (pin) pin.hasTriggered = false;
+      });
+    });
+
+    this.notifyTick(false, false);
     return true;
   }
 
@@ -249,12 +266,12 @@ class ClockEngine {
     }
   }
 
-  // Pin Activation Sequence (Pause -> Delay -> Apply Delta -> Delay -> Resume)
+  // Pin Activation Sequence (Pre-Pause -> Smooth Hand Warp -> Settling Delay -> Resume)
   async executePinActivation(collision) {
     const { pin, circle, index } = collision;
     pin.hasTriggered = true;
 
-    // 1. Mechanical pre-activation delay (250ms)
+    // 1. Mechanical pre-activation delay (Hand stops upon hitting socket)
     this.onPinActivate({
       phase: 'PRE_PAUSE',
       pin,
@@ -267,25 +284,46 @@ class ClockEngine {
       window.chronosAudio.playPinActivation(pin.deltaMinutes);
     }
 
-    await this.delay(300);
+    await this.delay(350);
 
-    // 2. Apply Time Delta (+20m, -15m, or +10m)
-    const targetAdjustedTime = this.displayedTimeMins + pin.deltaMinutes;
-    this.displayedTimeMins = targetAdjustedTime;
+    // 2. Apply Time Delta:
+    // If Outer Ring (Minute Hand): applies minute fraction (+20m / +1/3, -15m / -1/4, +10m / +1/6)
+    // If Inner Ring (Hour Hand): Minute hand stops at current minute, Hour hand steps (+1h / -1h)
+    let timeAdjustment = pin.deltaMinutes;
+    if (circle === 'inner') {
+      timeAdjustment = pin.deltaMinutes < 0 ? -60 : 60;
+    }
+    this.displayedTimeMins += timeAdjustment;
 
     this.onPinActivate({
       phase: 'APPLYING',
       pin,
       circle,
       index,
-      deltaMinutes: pin.deltaMinutes,
+      deltaMinutes: timeAdjustment,
       displayedTime: this.formatMinutesToTime(this.displayedTimeMins)
     });
 
-    this.notifyTick(true); // Smooth transition flag
+    this.notifyTick(true); // Smooth transition flag (0.6s CSS transition)
 
-    // 3. Post-activation mechanical settling delay (350ms)
-    await this.delay(400);
+    // Wait for the hands to smoothly travel and reach their target positions
+    await this.delay(600);
+
+    // 3. Post-activation mechanical settling pause (Hands hold still at new position)
+    this.onPinActivate({
+      phase: 'SETTLING_PAUSE',
+      pin,
+      circle,
+      index,
+      displayedTime: this.formatMinutesToTime(this.displayedTimeMins)
+    });
+
+    if (window.chronosAudio) {
+      window.chronosAudio.playTick();
+    }
+
+    // Delay after reaching trigger time before resuming normal ticking
+    await this.delay(600);
 
     this.onPinActivate({
       phase: 'POST_RESUME',
@@ -301,8 +339,8 @@ class ClockEngine {
     this.animationFrameId = requestAnimationFrame(this.loop);
   }
 
-  // Phase 3: Completion & Victory Check
-  finishRun() {
+  // Phase 3: Completion & Victory Check with Locked Time Delay
+  async finishRun() {
     this.state = 'COMPLETED';
     if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
 
@@ -315,17 +353,40 @@ class ClockEngine {
 
     const isSuccess = (normalizedFinal === normalizedTarget);
 
-    this.onComplete({
-      isSuccess,
-      finalTime: finalFormatted,
-      targetTime: targetFormatted,
-      elapsedDuration: this.elapsedDurationMins
-    });
-
     if (isSuccess) {
+      // Announce time set / locked state
+      this.onTick({
+        displayedTime: finalFormatted,
+        ...this.getAngles(),
+        elapsedDuration: this.runningDurationMins,
+        totalDuration: this.runningDurationMins,
+        progressPercent: 100,
+        state: 'TIME_LOCKED',
+        smooth: true,
+        rewind: false
+      });
+
       if (window.chronosAudio) window.chronosAudio.playVictory();
+
+      // Brief settling delay so user sees time is locked on target before modal appears
+      await this.delay(1400);
+
+      this.onComplete({
+        isSuccess: true,
+        finalTime: finalFormatted,
+        targetTime: targetFormatted,
+        elapsedDuration: this.elapsedDurationMins
+      });
     } else {
       if (window.chronosAudio) window.chronosAudio.playParadox();
+
+      this.onComplete({
+        isSuccess: false,
+        finalTime: finalFormatted,
+        targetTime: targetFormatted,
+        elapsedDuration: this.elapsedDurationMins
+      });
+
       // Unsuccessful attempt: show final time briefly (1400ms), then auto-initiate rewind
       setTimeout(() => {
         this.autoRewindReset();

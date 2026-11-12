@@ -226,3 +226,19 @@
 .clock-hand.rewind-transition {
   transition: transform 1.8s cubic-bezier(0.25, 1, 0.5, 1);
 }
+
+/* Time Locked Dial Readout Glow */
+.time-locked-glow {
+  animation: time-locked-pulse 1s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4), inset 0 2px 8px rgba(0, 0, 0, 0.9) !important;
+}
+
+@keyframes time-locked-pulse {
+  0% {
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.3), inset 0 2px 8px rgba(0, 0, 0, 0.9);
+  }
+  100% {
+    box-shadow: 0 0 24px rgba(16, 185, 129, 0.8), inset 0 2px 8px rgba(0, 0, 0, 0.9);
+  }
+}

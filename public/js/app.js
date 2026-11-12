@@ -31,31 +31,47 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnOpenAuth = document.getElementById('btn-open-auth');
   const btnOpenSettings = document.getElementById('btn-open-settings');
 
-  // Curated Puzzles Cache
+  // Curated Puzzles Cache & Challenge Duel State
   let currentLevelNumber = 1;
   let puzzlesList = [];
+  let currentChallenge = null; // { isCustom: true, fromFriend: boolean, challenger: string, start: string, target: string, duration: number }
 
-  // Level hints and formulas database
+  // Level hints database (Exclusively Fractions)
   const levelHints = {
     1: {
-      formula: '01:00 (Start) + 75m (Natural) = 02:15 ➔ <span class="text-primary font-bold">+20m Needed for 02:35</span>',
-      hint: 'Place one <strong>Green (+20m) Forward Pin</strong> into <strong>Inner Socket "2h"</strong> (at 2 o\'clock) or <strong>Outer Socket "15m"</strong> (at 3 o\'clock). Then press <strong>START CLOCK</strong>!'
+      formula: '01:00 (Start) + 75m (Natural) = 02:15 ➔ <span class="text-primary font-bold">+1/3 hr Needed for 02:35</span>',
+      hint: 'Place one <strong>Green (+1/3) Forward Pin</strong> into <strong>Outer Socket "15m"</strong> (at 3 o\'clock). Then press <strong>START CLOCK</strong>!'
     },
     2: {
       formula: '12:00 (Start) + 75m (Natural) = 01:15 ➔ <span class="text-primary font-bold">+5m Needed for 01:20</span>',
-      hint: 'Net warp needed is <strong>+5 minutes</strong>. Place one <strong>Green (+20m)</strong> pin and one <strong>Red (-15m)</strong> pin (+20m - 15m = +5m)!'
+      hint: 'Net warp needed is <strong>+5 minutes</strong> (+1/3 hr - 1/4 hr). Place one <strong>Green (+1/3)</strong> pin and one <strong>Red (-1/4)</strong> pin!'
     },
     3: {
-      formula: '02:00 (Start) + 75m (Natural) = 03:15 ➔ <span class="text-primary font-bold">+75m Needed for 04:30</span>',
-      hint: 'Net warp needed is <strong>+75 minutes</strong>. Combine multiple forward pins: e.g. three Green (+20m) pins and two Blue (+10m) pins minus one Red (-15m) pin!'
+      formula: '02:00 (Start) + 75m (Natural) = 03:15 ➔ <span class="text-primary font-bold">+1h 15m Needed for 04:30</span>',
+      hint: 'Bridge the large 1-hour gap by slotting a pin into the <strong>Inner (Hour) Ring</strong> (e.g. at 3h), and minute pins on the Outer Ring to hit 04:30!'
     },
     4: {
       formula: '06:00 (Start) + 75m (Natural) = 07:15 ➔ <span class="text-primary font-bold">+45m Needed for 08:00</span>',
-      hint: 'Net warp needed is <strong>+45 minutes</strong>. Coordinate both Hour Ring (Inner) and Minute Ring (Outer) pins!'
+      hint: 'Coordinate both Hour Ring (Inner) and Minute Ring (Outer) fraction pins in sequence!'
     },
     5: {
       formula: '10:15 (Start) + 75m (Natural) = 11:30 ➔ <span class="text-primary font-bold">+30m Needed for 12:00</span>',
-      hint: 'Net warp needed is <strong>+30 minutes</strong>. Place one <strong>Green (+20m)</strong> and one <strong>Blue (+10m)</strong> pin along the minute path!'
+      hint: 'Combine fraction pins along the path: e.g. one <strong>Green (+1/3)</strong> and one <strong>Blue (+1/6)</strong> pin!'
+    },
+    6: {
+      hint: 'Natural run from 03:35 reaches 04:50. Advance the minute hand +25 minutes using fraction warps to synchronize with 05:15.'
+    },
+    7: {
+      hint: 'Natural run overshoots to 08:25! Slot negative fraction pins (-1/4 hr = -15m) to decelerate back to 08:15.'
+    },
+    8: {
+      hint: 'Harness the Inner Hour Ring to trigger an hour leap at Hour 3, then fine-tune minute pins to strike 04:30.'
+    },
+    9: {
+      hint: 'Bridge the 1 hour 50 minute gap between 10:00 and 11:50 by harmonizing both hour-ring advances and minute warps.'
+    },
+    10: {
+      hint: 'Coordinate concentric hour advances and fraction cascades to reach 04:50 before duration expires.'
     }
   };
 
@@ -102,6 +118,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   await window.chronosAuth.checkSession();
   setupAuthListeners();
 
+  // 6. Check if incoming URL has a custom friend challenge duel
+  checkURLChallenge();
+
   // -------------------------------------------------------------
   // UI Tick Updater
   // -------------------------------------------------------------
@@ -118,9 +137,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       hourHandEl.style.transform = `rotate(${hourAngle}deg)`;
     }
 
-    // Digital Dial Readout
+    // Digital Dial Readout & Time Locked Glow
     if (dialReadoutEl) {
       dialReadoutEl.textContent = `${displayedTime}:00`;
+      const readoutBox = dialReadoutEl.closest('.border-secondary-container');
+      if (readoutBox) {
+        if (data.state === 'TIME_LOCKED') {
+          readoutBox.classList.add('time-locked-glow');
+        } else {
+          readoutBox.classList.remove('time-locked-glow');
+        }
+      }
     }
 
     // Duration Progress Bar
@@ -169,6 +196,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Show Victory Modal
       document.getElementById('victory-final-time').textContent = finalTime;
       document.getElementById('victory-target-time').textContent = targetTime;
+
+      const victoryTitle = document.querySelector('#victory-modal-overlay h2');
+      const victoryDesc = document.querySelector('#victory-modal-overlay p');
+      const btnNextLevel = document.getElementById('btn-next-level');
+      const btnShareVictory = document.getElementById('btn-share-victory');
+
+      if (currentChallenge && currentChallenge.isCustom) {
+        if (currentChallenge.fromFriend) {
+          if (victoryTitle) victoryTitle.textContent = '⚔️ DUEL WON!';
+          if (victoryDesc) victoryDesc.textContent = `You conquered ${currentChallenge.challenger}'s custom challenge! Dial synchronized perfectly at ${targetTime}.`;
+        } else {
+          if (victoryTitle) victoryTitle.textContent = '🏆 CHALLENGE SOLVED!';
+          if (victoryDesc) victoryDesc.textContent = `You solved your custom challenge! Dial synchronized from ${currentChallenge.start} to ${targetTime}.`;
+        }
+        if (btnNextLevel) btnNextLevel.textContent = 'New Challenge ➔';
+        if (btnShareVictory) btnShareVictory.classList.remove('hidden');
+      } else {
+        if (victoryTitle) victoryTitle.textContent = 'TIME MASTER!';
+        if (victoryDesc) victoryDesc.textContent = 'You solved the horological equation! The hands came to rest exactly at the target time.';
+        if (btnNextLevel) btnNextLevel.textContent = 'Next Epoch »';
+        if (btnShareVictory) btnShareVictory.classList.add('hidden');
+      }
+
       victoryOverlay.classList.remove('hidden');
 
       // Record to MySQL backend
@@ -339,9 +389,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   btnReset.addEventListener('click', () => {
-    engine.manualReset();
+    const puzzle = puzzlesList.find(p => p.level_number === currentLevelNumber);
+    if (puzzle) {
+      engine.resetLevel(puzzle.start_time, puzzle.target_time, puzzle.running_duration_minutes);
+    } else {
+      engine.manualReset();
+    }
+    dragManager.returnAllPinsToInventory();
+    renderPinsAndSockets();
     btnStart.disabled = false;
     btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+    showFloatingNotification(`Reset to ${puzzle ? puzzle.start_time : 'start'}`, '#eec06a');
   });
 
   function setSpeedActive(activeBtn, speed) {
@@ -388,7 +446,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         { level_number: 2, title: 'Epoch II: Equilibrium of Gears', start_time: '12:00', target_time: '01:20', running_duration_minutes: 75, description: 'Natural passage reaches 01:15. A delicate balance (+20m and -15m) bridges the 5-minute offset to 01:20.' },
         { level_number: 3, title: 'Epoch III: The Brass Pendulum', start_time: '02:00', target_time: '04:30', running_duration_minutes: 75, description: 'Natural run leads to 03:15. Coordinate multiple time warps to land precisely at 04:30.' },
         { level_number: 4, title: 'Epoch IV: The Temporal Paradox', start_time: '06:00', target_time: '08:00', running_duration_minutes: 75, description: 'Coordinate the Inner (Hour) and Outer (Minute) rings in sequence. Timing is everything.' },
-        { level_number: 5, title: 'Epoch V: The Omnipresent Dial', start_time: '10:15', target_time: '12:00', running_duration_minutes: 75, description: 'A master trial requiring strategic placement to prevent reverse loops and hit the 12:00 apex.' }
+        { level_number: 5, title: 'Epoch V: The Omnipresent Dial', start_time: '10:15', target_time: '12:00', running_duration_minutes: 75, description: 'A master trial requiring strategic placement to prevent reverse loops and hit the 12:00 apex.' },
+        { level_number: 6, title: 'Epoch VI: Gear-Train Resonance', start_time: '03:35', target_time: '05:15', running_duration_minutes: 75, description: 'Natural passage from 03:35 reaches 04:50. Advance the minute hand +25 minutes using fraction warps to synchronize with 05:15.' },
+        { level_number: 7, title: 'Epoch VII: Chrono Dilation', start_time: '07:10', target_time: '08:15', running_duration_minutes: 75, description: 'Natural run overshoots to 08:25! Slot negative fraction pins (-1/4 hr = -15m) to decelerate the dial back to 08:15.' },
+        { level_number: 8, title: 'Epoch VIII: The Dual-Arbor Leap', start_time: '02:20', target_time: '04:30', running_duration_minutes: 75, description: 'Natural run reaches 03:35. Harness the Inner Hour Ring to trigger an hour leap at Hour 3, then fine-tune minute pins to strike 04:30.' },
+        { level_number: 9, title: 'Epoch IX: Celestial Escapement', start_time: '08:45', target_time: '11:50', running_duration_minutes: 75, description: 'Bridge the 1 hour 50 minute gap between 10:00 (natural run end) and 11:50 by harmonizing both hour-ring advances and minute warps.' },
+        { level_number: 10, title: 'Epoch X: Grand Chronomancer Trial', start_time: '01:00', target_time: '04:50', running_duration_minutes: 75, description: 'The master challenge. Natural run reaches 02:15. Coordinate concentric hour advances and fraction cascades to reach 04:50 before duration expires.' }
       ];
     }
     renderLevelList();
@@ -400,9 +463,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!listContainer) return;
     listContainer.innerHTML = '';
 
+    const isCustomActive = currentChallenge && currentChallenge.isCustom;
+
     puzzlesList.forEach(p => {
       const btn = document.createElement('button');
-      const isCurrent = p.level_number === currentLevelNumber;
+      const isCurrent = !isCustomActive && (p.level_number === currentLevelNumber);
       btn.className = `w-full flex items-center justify-between px-3 py-2 transition-all text-label-sm font-label-sm ${isCurrent ? 'bg-surface-container-highest border-l-2 border-primary text-primary font-semibold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'}`;
       btn.innerHTML = `
         <div class="flex items-center gap-3">
@@ -419,30 +484,38 @@ document.addEventListener('DOMContentLoaded', async () => {
       listContainer.appendChild(btn);
     });
 
-    // Custom Sandbox Option
-    const sandboxBtn = document.createElement('button');
-    sandboxBtn.className = 'w-full flex items-center justify-between px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all text-label-sm font-label-sm mt-2 pt-2 border-t border-outline-variant/20';
-    sandboxBtn.innerHTML = `
-      <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-sm text-tertiary">tune</span>
-        <span>Sandbox Mode</span>
+    // Custom Challenge & Friend Duel Option
+    const duelBtn = document.createElement('button');
+    duelBtn.className = `w-full flex items-center justify-between px-3 py-2 transition-all text-label-sm font-label-sm mt-2 pt-2 border-t border-outline-variant/30 font-semibold ${isCustomActive ? 'bg-surface-container-highest border-l-2 border-primary text-primary' : 'text-primary hover:text-primary-fixed hover:bg-surface-container-high'}`;
+    duelBtn.innerHTML = `
+      <div class="flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-sm text-primary">swords</span>
+        <span>${isCustomActive ? (currentChallenge.fromFriend ? `Duel: ${currentChallenge.challenger}` : 'Custom Challenge') : 'Challenge & Duel'}</span>
       </div>
-      <span class="text-[9px] text-tertiary">CUSTOM</span>
+      <span class="text-[9px] px-1.5 py-0.5 rounded ${isCustomActive ? 'bg-primary text-surface-container-lowest font-bold' : 'bg-primary/20 text-primary border border-primary/30'}">
+        ${isCustomActive ? 'ACTIVE' : 'CUSTOM'}
+      </span>
     `;
-    sandboxBtn.addEventListener('click', () => {
+    duelBtn.addEventListener('click', () => {
       settingsOverlay.classList.remove('hidden');
     });
-    listContainer.appendChild(sandboxBtn);
+    listContainer.appendChild(duelBtn);
   }
 
   function selectLevel(lvlNum) {
+    currentChallenge = null;
+    const challengeBanner = document.getElementById('friend-challenge-banner');
+    if (challengeBanner) challengeBanner.classList.add('hidden');
+
     currentLevelNumber = lvlNum;
     const puzzle = puzzlesList.find(p => p.level_number === lvlNum);
     if (!puzzle) return;
 
-    engine.setTimeSettings(puzzle.start_time, puzzle.target_time, puzzle.running_duration_minutes);
+    // Reset clock state and set time cleanly to new level's exact starting time
+    engine.resetLevel(puzzle.start_time, puzzle.target_time, puzzle.running_duration_minutes);
     hudStartTimeEl.textContent = puzzle.start_time;
     hudTargetTimeEl.textContent = puzzle.target_time;
+    if (dialReadoutEl) dialReadoutEl.textContent = `${puzzle.start_time}:00`;
 
     // Update Mechanics Codex Card
     const codexTitle = document.getElementById('codex-title');
@@ -450,18 +523,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (codexTitle) codexTitle.textContent = puzzle.title;
     if (codexDesc) codexDesc.textContent = puzzle.description;
 
-    // Update Mission Formula Banner & Hint Box
+    // Mission Formula Banner: Only visible as an introductory tutorial for Epoch 1; removed/hidden for later epochs!
+    const formulaCard = document.getElementById('mission-formula-card');
     const formulaBadge = document.getElementById('formula-epoch-badge');
     const formulaText = document.getElementById('formula-text');
     const hintText = document.getElementById('hint-box-text');
-    const hintInfo = (typeof levelHints !== 'undefined' && levelHints[lvlNum]) ? levelHints[lvlNum] : {
-      formula: `${puzzle.start_time} (Start) + ${puzzle.running_duration_minutes}m (Natural) ➔ Target: ${puzzle.target_time}`,
-      hint: `Coordinate your pins so the clock reaches ${puzzle.target_time} when natural run completes!`
-    };
 
-    if (formulaBadge) formulaBadge.textContent = `Epoch ${lvlNum}`;
-    if (formulaText) formulaText.innerHTML = hintInfo.formula;
-    if (hintText) hintText.innerHTML = `<strong>Hint for Epoch ${lvlNum}:</strong> ${hintInfo.hint}`;
+    if (formulaCard) {
+      if (lvlNum === 1) {
+        formulaCard.classList.remove('hidden');
+        if (formulaBadge) formulaBadge.textContent = 'Epoch 1 (Tutorial)';
+        if (formulaText) {
+          formulaText.innerHTML = `<strong>Introductory Tutorial:</strong> Clock runs naturally from ${puzzle.start_time} for 75m to reach 02:15. Slot a <span class="text-primary font-bold">+1/3 pin</span> into Outer Socket 15m to synchronize with Target ${puzzle.target_time}!`;
+        }
+      } else {
+        // Remove / hide mission formula on later epochs as requested
+        formulaCard.classList.add('hidden');
+      }
+    }
+
+    if (hintText) {
+      const hintObj = levelHints[lvlNum];
+      hintText.innerHTML = `<strong>Hint for Epoch ${lvlNum}:</strong> ${hintObj ? hintObj.hint : 'Arrange your fraction pins along the sweeps to bridge the time offset!'}`;
+    }
 
     renderLevelList();
     dragManager.returnAllPinsToInventory();
@@ -469,22 +553,94 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     btnStart.disabled = false;
     btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+
+    // Reset feedback form in victory modal
+    const feedbackStatusMsg = document.getElementById('feedback-status-msg');
+    if (feedbackStatusMsg) feedbackStatusMsg.classList.add('hidden');
+    const feedbackInput = document.getElementById('feedback-input-text');
+    if (feedbackInput) feedbackInput.value = '';
   }
 
   // Next Level from Victory Modal
   document.getElementById('btn-next-level').addEventListener('click', () => {
     victoryOverlay.classList.add('hidden');
-    const nextLvl = currentLevelNumber < puzzlesList.length ? currentLevelNumber + 1 : 1;
-    selectLevel(nextLvl);
+    if (currentChallenge && currentChallenge.isCustom) {
+      settingsOverlay.classList.remove('hidden');
+    } else {
+      const nextLvl = currentLevelNumber < puzzlesList.length ? currentLevelNumber + 1 : 1;
+      selectLevel(nextLvl);
+      showFloatingNotification(`Advancing to Epoch ${nextLvl}! Start: ${puzzlesList.find(p=>p.level_number===nextLvl)?.start_time || ''}`, '#10b981');
+    }
   });
 
   document.getElementById('btn-play-again').addEventListener('click', () => {
     victoryOverlay.classList.add('hidden');
-    selectLevel(currentLevelNumber);
+    if (currentChallenge && currentChallenge.isCustom) {
+      activateCustomChallenge(currentChallenge.start, currentChallenge.target, currentChallenge.duration, currentChallenge.challenger, currentChallenge.fromFriend);
+    } else {
+      selectLevel(currentLevelNumber);
+      showFloatingNotification(`Epoch ${currentLevelNumber} reset to ${puzzlesList.find(p=>p.level_number===currentLevelNumber)?.start_time || 'start'}!`, '#10b981');
+    }
   });
 
+  // Setup Feedback & Reaction Submission (Issue 10)
+  let selectedSentiment = 'loved_it';
+  let selectedRating = 5;
+
+  document.querySelectorAll('.feedback-reaction-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.feedback-reaction-btn').forEach(b => {
+        b.classList.remove('bg-primary/20', 'border-primary', 'text-primary');
+        b.classList.add('bg-surface-container', 'border-outline-variant');
+      });
+      btn.classList.add('bg-primary/20', 'border-primary', 'text-primary');
+      btn.classList.remove('bg-surface-container', 'border-outline-variant');
+      selectedRating = parseInt(btn.dataset.rating, 10) || 5;
+      selectedSentiment = btn.dataset.sentiment || 'loved_it';
+    });
+  });
+
+  const btnSubmitFeedback = document.getElementById('btn-submit-feedback');
+  const feedbackInput = document.getElementById('feedback-input-text');
+  const feedbackStatusMsg = document.getElementById('feedback-status-msg');
+
+  if (btnSubmitFeedback) {
+    btnSubmitFeedback.addEventListener('click', async () => {
+      const comment = feedbackInput ? feedbackInput.value.trim() : '';
+      try {
+        btnSubmitFeedback.disabled = true;
+        btnSubmitFeedback.textContent = '...';
+        const res = await fetch('/api/game/feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...window.chronosAuth.getAuthHeader()
+          },
+          body: JSON.stringify({
+            levelNumber: currentLevelNumber,
+            rating: selectedRating,
+            sentiment: selectedSentiment,
+            comment: comment,
+            username: window.chronosAuth.user ? window.chronosAuth.user.username : 'Guest Player'
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (feedbackStatusMsg) feedbackStatusMsg.classList.remove('hidden');
+          if (feedbackInput) feedbackInput.value = '';
+          showFloatingNotification('Feedback saved! Shukriya!', '#10b981');
+        }
+      } catch (e) {
+        showFloatingNotification('Feedback saved locally!', '#10b981');
+      } finally {
+        btnSubmitFeedback.disabled = false;
+        btnSubmitFeedback.textContent = 'Bhejo';
+      }
+    });
+  }
+
   // -------------------------------------------------------------
-  // Settings Modal Controls
+  // Custom Challenge & Friend Duel Modal Controls
   // -------------------------------------------------------------
   if (btnOpenSettings) {
     btnOpenSettings.addEventListener('click', () => {
@@ -495,23 +651,162 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  document.getElementById('btn-close-settings').addEventListener('click', () => {
-    settingsOverlay.classList.add('hidden');
+  const btnCloseSettings = document.getElementById('btn-close-settings');
+  if (btnCloseSettings) {
+    btnCloseSettings.addEventListener('click', () => {
+      settingsOverlay.classList.add('hidden');
+    });
+  }
+
+  // Quick Preset Buttons in Duel Modal
+  document.querySelectorAll('.preset-duel-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const s = btn.dataset.start;
+      const t = btn.dataset.target;
+      if (s) document.getElementById('setting-start-time').value = s;
+      if (t) document.getElementById('setting-target-time').value = t;
+    });
   });
 
+  // Play Solo Custom Challenge
   document.getElementById('settings-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    const newStart = document.getElementById('setting-start-time').value;
-    const newTarget = document.getElementById('setting-target-time').value;
+    const newStart = document.getElementById('setting-start-time').value || '03:35';
+    const newTarget = document.getElementById('setting-target-time').value || '05:15';
     const newDuration = parseInt(document.getElementById('setting-duration').value, 10) || 75;
+    const challenger = document.getElementById('setting-challenger-name').value.trim() || 'Solo Player';
 
-    engine.setTimeSettings(newStart, newTarget, newDuration);
-    hudStartTimeEl.textContent = newStart;
-    hudTargetTimeEl.textContent = newTarget;
-
+    activateCustomChallenge(newStart, newTarget, newDuration, challenger, false);
     settingsOverlay.classList.add('hidden');
-    showFloatingNotification('Chrono parameters recalibrated!', '#10b981');
   });
+
+  // Share Friend Challenge (Copy Link to Clipboard)
+  const btnShareFriendChallenge = document.getElementById('btn-share-friend-challenge');
+  if (btnShareFriendChallenge) {
+    btnShareFriendChallenge.addEventListener('click', () => {
+      const start = document.getElementById('setting-start-time').value || '03:35';
+      const target = document.getElementById('setting-target-time').value || '05:15';
+      const duration = document.getElementById('setting-duration').value || '75';
+      const challenger = document.getElementById('setting-challenger-name').value.trim() || 'A Chronomancer Friend';
+
+      const origin = window.location.origin;
+      const pathname = window.location.pathname;
+      const shareURL = `${origin}${pathname}?start=${encodeURIComponent(start)}&target=${encodeURIComponent(target)}&duration=${encodeURIComponent(duration)}&challenger=${encodeURIComponent(challenger)}`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareURL).then(() => {
+          showFloatingNotification('🔗 Duel link copied! Share with your friend!', '#10b981');
+        }).catch(() => {
+          prompt('Copy this Challenge Link to send to your friend:', shareURL);
+        });
+      } else {
+        prompt('Copy this Challenge Link to send to your friend:', shareURL);
+      }
+    });
+  }
+
+  // Activate Custom Challenge State
+  function activateCustomChallenge(start, target, duration, challenger, fromFriend = false) {
+    currentChallenge = { isCustom: true, fromFriend, challenger, start, target, duration };
+
+    engine.resetLevel(start, target, duration);
+    hudStartTimeEl.textContent = start;
+    hudTargetTimeEl.textContent = target;
+    if (dialReadoutEl) dialReadoutEl.textContent = `${start}:00`;
+
+    // Render prominent challenge banner above clock
+    const banner = document.getElementById('friend-challenge-banner');
+    if (banner) {
+      banner.innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex items-start gap-2.5">
+            <span class="material-symbols-outlined text-primary text-xl shrink-0 mt-0.5">swords</span>
+            <div>
+              <div class="text-primary font-bold uppercase tracking-wider text-[11px] mb-0.5">
+                ${fromFriend ? '⚔️ FRIEND CHALLENGE ACCEPTED!' : '⚔️ CUSTOM SOLO CHALLENGE ACTIVE'}
+              </div>
+              <div class="text-on-surface text-[11px] leading-relaxed">
+                ${fromFriend ? `Challenged by <strong class="text-secondary font-bold">${challenger}</strong>: ` : ''}
+                Align dial from <strong>${start}</strong> to <strong class="text-primary font-bold">${target}</strong> within ${duration} minutes!
+              </div>
+            </div>
+          </div>
+          <button id="btn-dismiss-challenge" class="brass-actuator px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0">
+            Dismiss ✕
+          </button>
+        </div>
+      `;
+      banner.classList.remove('hidden');
+
+      const btnDismiss = document.getElementById('btn-dismiss-challenge');
+      if (btnDismiss) {
+        btnDismiss.addEventListener('click', () => {
+          banner.classList.add('hidden');
+        });
+      }
+    }
+
+    // Update Mechanics Codex Card
+    const codexTitle = document.getElementById('codex-title');
+    const codexDesc = document.getElementById('codex-description');
+    if (codexTitle) codexTitle.textContent = fromFriend ? `Duel: ${challenger}'s Challenge` : 'Custom Parameter Trial';
+    if (codexDesc) codexDesc.textContent = `Align the dial from ${start} to ${target} within ${duration}m using your 9 fraction pins!`;
+
+    // Hide tutorial/formula banners during custom challenge
+    const formulaCard = document.getElementById('mission-formula-card');
+    if (formulaCard) formulaCard.classList.add('hidden');
+    const walkthroughBanner = document.getElementById('walkthrough-banner');
+    if (walkthroughBanner) walkthroughBanner.classList.add('hidden');
+
+    renderLevelList();
+    dragManager.returnAllPinsToInventory();
+    renderPinsAndSockets();
+
+    btnStart.disabled = false;
+    btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+
+    showFloatingNotification(`⚔️ ${fromFriend ? 'Duel from ' + challenger : 'Custom Challenge'} Loaded! Target: ${target}`, '#10b981');
+  }
+
+  // URL Challenge Detection on Page Load
+  function checkURLChallenge() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const startParam = params.get('start');
+      const targetParam = params.get('target');
+      const durationParam = parseInt(params.get('duration'), 10) || 75;
+      const challengerParam = params.get('challenger') || 'A Friend';
+
+      if (startParam && targetParam) {
+        activateCustomChallenge(startParam, targetParam, durationParam, challengerParam, true);
+      }
+    } catch (err) {
+      console.warn('URL Challenge parsing error:', err);
+    }
+  }
+
+  // Share Victory from Victory Modal
+  const btnShareVictory = document.getElementById('btn-share-victory');
+  if (btnShareVictory) {
+    btnShareVictory.addEventListener('click', () => {
+      if (!currentChallenge) return;
+      const origin = window.location.origin;
+      const pathname = window.location.pathname;
+      const shareURL = `${origin}${pathname}?start=${encodeURIComponent(currentChallenge.start)}&target=${encodeURIComponent(currentChallenge.target)}&duration=${encodeURIComponent(currentChallenge.duration)}&challenger=${encodeURIComponent(currentChallenge.challenger)}`;
+
+      const victoryText = `🏆 I just solved ${currentChallenge.fromFriend ? currentChallenge.challenger + "'s" : 'the'} Chronos Clock Challenge!\n🕒 Start: ${currentChallenge.start} ➔ 🎯 Target: ${currentChallenge.target}\nCan you beat my solution? Try it here:\n${shareURL}`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(victoryText).then(() => {
+          showFloatingNotification('🏆 Victory message copied to clipboard! Send to your challenger!', '#10b981');
+        }).catch(() => {
+          prompt('Copy victory message to send to your friend:', victoryText);
+        });
+      } else {
+        prompt('Copy victory message to send to your friend:', victoryText);
+      }
+    });
+  }
 
   // -------------------------------------------------------------
   // Authentication & Session Listeners
@@ -711,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (walkthroughStep === 1) {
       walkthroughTitle.textContent = 'Walkthrough: Step 1 of 4 (The Math)';
-      walkthroughDesc.textContent = 'Start is 01:00. In 75 min natural duration, it reaches 02:15. Target is 02:35. We need an extra +20 minutes!';
+      walkthroughDesc.textContent = 'Start is 01:00. In 75 min natural duration, it reaches 02:15. Target is 02:35. We need +1/3 hr (+20m)!';
       btnWalkthroughNext.textContent = 'Next: Pick Pin ➔';
       btnWalkthroughNext.classList.remove('hidden');
 
@@ -719,18 +1014,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (formulaCard) formulaCard.classList.add('ring-2', 'ring-primary');
     } else if (walkthroughStep === 2) {
       walkthroughTitle.textContent = 'Walkthrough: Step 2 of 4 (Choose Pin)';
-      walkthroughDesc.textContent = 'Tap or drag a Green (+20m) Pin from your inventory tray directly below the clock.';
+      walkthroughDesc.textContent = 'Tap or select a Green (+1/3) Pin from your Pin Tray directly below the clock.';
       btnWalkthroughNext.textContent = 'Next: Choose Socket ➔';
 
       const trayFh = document.getElementById('tray-pins-fh');
       if (trayFh) trayFh.classList.add('ring-4', 'ring-primary', 'rounded-lg');
     } else if (walkthroughStep === 3) {
       walkthroughTitle.textContent = 'Walkthrough: Step 3 of 4 (Slot Pin)';
-      walkthroughDesc.textContent = 'Tap or drop the pin into Amber Socket "2h" on the Inner Ring. At 2:00, the hour hand will hit it and jump +20m to 02:20!';
+      walkthroughDesc.textContent = 'Tap or drop the pin into Outer Socket "15m". At 02:15, the minute hand hits it and warps +1/3 hr (+20m) to reach 02:35!';
       btnWalkthroughNext.textContent = 'Next: Start Clock ➔';
 
-      const socket2h = document.querySelector('.socket-hole[data-circle="inner"][data-socket-index="1"]');
-      if (socket2h) socket2h.classList.add('hint-target');
+      const socket15m = document.querySelector('.socket-hole[data-circle="outer"][data-socket-index="3"]');
+      if (socket15m) socket15m.classList.add('hint-target');
     } else if (walkthroughStep === 4) {
       walkthroughTitle.textContent = 'Walkthrough: Step 4 of 4 (Execute Run)';
       walkthroughDesc.textContent = '🎉 Perfect! The pin is slotted. Now press START CLOCK to watch time warp and solve the puzzle!';

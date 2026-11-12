@@ -10,22 +10,22 @@ class PinDragDropManager {
     this.container = options.container || document.body;
     this.onInventoryChange = options.onInventoryChange || (() => {});
 
-    // Initial 9-Pin Inventory Definition
+    // Initial 9-Pin Inventory Definition (Exclusively Fractions)
     this.pins = [
-      // 3x Forward High (+20m)
-      { id: 'pin-fh-1', type: 'forward-high', deltaMinutes: 20, label: '+20m', symbol: '»', color: 'emerald', bgHex: '#10b981', borderHex: '#34d399', textHex: '#ffffff', location: 'inventory' },
-      { id: 'pin-fh-2', type: 'forward-high', deltaMinutes: 20, label: '+20m', symbol: '»', color: 'emerald', bgHex: '#10b981', borderHex: '#34d399', textHex: '#ffffff', location: 'inventory' },
-      { id: 'pin-fh-3', type: 'forward-high', deltaMinutes: 20, label: '+20m', symbol: '»', color: 'emerald', bgHex: '#10b981', borderHex: '#34d399', textHex: '#ffffff', location: 'inventory' },
+      // 3x Forward High (+1/3 hr = +20m on outer, +1h on inner)
+      { id: 'pin-fh-1', type: 'forward-high', deltaMinutes: 20, label: '+1/3', symbol: '»', color: 'emerald', bgHex: '#10b981', borderHex: '#34d399', textHex: '#ffffff', location: 'inventory' },
+      { id: 'pin-fh-2', type: 'forward-high', deltaMinutes: 20, label: '+1/3', symbol: '»', color: 'emerald', bgHex: '#10b981', borderHex: '#34d399', textHex: '#ffffff', location: 'inventory' },
+      { id: 'pin-fh-3', type: 'forward-high', deltaMinutes: 20, label: '+1/3', symbol: '»', color: 'emerald', bgHex: '#10b981', borderHex: '#34d399', textHex: '#ffffff', location: 'inventory' },
 
-      // 3x Backward (-15m)
-      { id: 'pin-bw-1', type: 'backward', deltaMinutes: -15, label: '-15m', symbol: '«', color: 'ruby', bgHex: '#ef4444', borderHex: '#f87171', textHex: '#ffffff', location: 'inventory' },
-      { id: 'pin-bw-2', type: 'backward', deltaMinutes: -15, label: '-15m', symbol: '«', color: 'ruby', bgHex: '#ef4444', borderHex: '#f87171', textHex: '#ffffff', location: 'inventory' },
-      { id: 'pin-bw-3', type: 'backward', deltaMinutes: -15, label: '-15m', symbol: '«', color: 'ruby', bgHex: '#ef4444', borderHex: '#f87171', textHex: '#ffffff', location: 'inventory' },
+      // 3x Backward (-1/4 hr = -15m on outer, -1h on inner)
+      { id: 'pin-bw-1', type: 'backward', deltaMinutes: -15, label: '-1/4', symbol: '«', color: 'ruby', bgHex: '#ef4444', borderHex: '#f87171', textHex: '#ffffff', location: 'inventory' },
+      { id: 'pin-bw-2', type: 'backward', deltaMinutes: -15, label: '-1/4', symbol: '«', color: 'ruby', bgHex: '#ef4444', borderHex: '#f87171', textHex: '#ffffff', location: 'inventory' },
+      { id: 'pin-bw-3', type: 'backward', deltaMinutes: -15, label: '-1/4', symbol: '«', color: 'ruby', bgHex: '#ef4444', borderHex: '#f87171', textHex: '#ffffff', location: 'inventory' },
 
-      // 3x Forward Low (+10m)
-      { id: 'pin-fl-1', type: 'forward-low', deltaMinutes: 10, label: '+10m', symbol: '>', color: 'sapphire', bgHex: '#2e82ff', borderHex: '#7ca8ff', textHex: '#ffffff', location: 'inventory' },
-      { id: 'pin-fl-2', type: 'forward-low', deltaMinutes: 10, label: '+10m', symbol: '>', color: 'sapphire', bgHex: '#2e82ff', borderHex: '#7ca8ff', textHex: '#ffffff', location: 'inventory' },
-      { id: 'pin-fl-3', type: 'forward-low', deltaMinutes: 10, label: '+10m', symbol: '>', color: 'sapphire', bgHex: '#2e82ff', borderHex: '#7ca8ff', textHex: '#ffffff', location: 'inventory' }
+      // 3x Forward Low (+1/6 hr = +10m on outer, +1h on inner)
+      { id: 'pin-fl-1', type: 'forward-low', deltaMinutes: 10, label: '+1/6', symbol: '>', color: 'sapphire', bgHex: '#2e82ff', borderHex: '#7ca8ff', textHex: '#ffffff', location: 'inventory' },
+      { id: 'pin-fl-2', type: 'forward-low', deltaMinutes: 10, label: '+1/6', symbol: '>', color: 'sapphire', bgHex: '#2e82ff', borderHex: '#7ca8ff', textHex: '#ffffff', location: 'inventory' },
+      { id: 'pin-fl-3', type: 'forward-low', deltaMinutes: 10, label: '+1/6', symbol: '>', color: 'sapphire', bgHex: '#2e82ff', borderHex: '#7ca8ff', textHex: '#ffffff', location: 'inventory' }
     ];
 
     this.pendingPointer = null; // Potential drag waiting for 8px movement threshold

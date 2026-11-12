@@ -92,8 +92,9 @@
         <span class="hidden sm:inline">How to Play</span>
       </button>
 
-      <button id="btn-open-settings" class="p-2 rounded bg-surface-container border border-outline-variant/40 hover:border-primary/50 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center" title="Calibrate Time Parameters">
-        <span class="material-symbols-outlined text-[18px]">tune</span>
+      <button id="btn-open-settings" class="px-2.5 py-1.5 rounded bg-surface-container border border-primary/50 text-primary hover:bg-primary/10 transition-colors flex items-center gap-1.5 font-mono text-xs font-semibold shadow-sm" title="Custom Challenge & Friend Duel">
+        <span class="material-symbols-outlined text-[16px]">swords</span>
+        <span class="hidden sm:inline">Challenge / Duel</span>
       </button>
 
       <!-- Player Profile Container -->
@@ -155,7 +156,7 @@
       </div>
 
       <!-- Duration Progress -->
-      <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-[260px] max-w-md ml-auto">
+      <div class="flex items-center gap-2.5 sm:gap-4 flex-1 min-w-[180px] sm:min-w-[240px] max-w-md ml-auto">
         <div class="w-full">
           <div class="flex justify-between items-center text-[10px] sm:text-[11px] mb-1">
             <span class="text-outline-variant tracking-wider">RUN DURATION</span>
@@ -186,7 +187,7 @@
           </div>
           <div>
             <h2 class="text-xs font-bold text-primary tracking-wider uppercase">Epoch Selector</h2>
-            <p class="text-[10px] text-on-surface-variant">Calibrated Trials</p>
+            <p class="text-[10px] text-on-surface-variant">Puzzle Levels</p>
           </div>
         </div>
 
@@ -260,6 +261,9 @@
         </div>
       </div>
 
+      <!-- Friend Duel / Custom Challenge Banner -->
+      <div id="friend-challenge-banner" class="w-full max-w-sm sm:max-w-xl mb-2.5 p-3 rounded-lg bg-amber-950/85 border-2 border-primary text-on-surface font-mono text-xs hidden transition-all shadow-xl"></div>
+
       <!-- In-Game Guided Walkthrough Step Banner (Hidden by default) -->
       <div id="walkthrough-banner" class="w-full max-w-xl mb-2.5 p-3 rounded-lg bg-amber-950/80 border-2 border-primary text-on-surface font-mono text-xs hidden transition-all shadow-xl">
         <div class="flex items-start justify-between gap-3">
@@ -278,8 +282,8 @@
         </div>
       </div>
 
-      <!-- THE 520px ANALOGUE MECHANICAL CLOCK -->
-      <div id="clock-chassis" class="relative w-[310px] h-[310px] xs:w-[350px] xs:h-[350px] sm:w-[480px] sm:h-[480px] lg:w-[520px] lg:h-[520px] max-w-[92vw] aspect-square rounded-full p-2 sm:p-4 shadow-2xl clock-bezel-shadow bg-surface-container-lowest border-4 border-outline-variant/60 coin-edge-border flex items-center justify-center transition-transform select-none">
+      <!-- THE PRECISION ANALOGUE CLOCK -->
+      <div id="clock-chassis" class="relative w-[275px] h-[275px] xs:w-[320px] xs:h-[320px] sm:w-[420px] sm:h-[420px] lg:w-[490px] lg:h-[490px] max-w-[94vw] aspect-square rounded-full p-2 sm:p-3.5 shadow-2xl clock-bezel-shadow bg-surface-container-lowest border-4 border-outline-variant/60 coin-edge-border flex items-center justify-center transition-transform select-none">
         
         <!-- ========================================== -->
 <!-- 600x600 HAUTE HORLOGERIE MASTER DIAL SVG   -->
@@ -496,18 +500,10 @@
   <circle cx="300.0" cy="196.0" r="13" fill="url(#socketCupGrad)" stroke="#d97706" stroke-width="1.2" opacity="0.6"/>
   </g>
 
-  <!-- 7. Center Guilloche Rosette & Rotating Escapement Skeleton -->
-  <g opacity="0.25">
-    <circle cx="300" cy="300" r="68" fill="none" stroke="#cda250" stroke-width="1" stroke-dasharray="2 2"/>
-    <circle cx="300" cy="300" r="50" fill="none" stroke="#eec06a" stroke-width="1.2"/>
-    <circle cx="300" cy="300" r="32" fill="none" stroke="#cda250" stroke-width="1"/>
-  </g>
-
-  <!-- Escapement Skeleton Balance Wheel (Gentle spin animation) -->
-  <g class="spin-slow" style="transform-origin: 300px 300px;" opacity="0.4">
-    <circle cx="300" cy="300" r="46" fill="none" stroke="#eec06a" stroke-width="2.5" stroke-dasharray="14 10"/>
-    <line x1="254" y1="300" x2="346" y2="300" stroke="#cda250" stroke-width="2"/>
-    <line x1="300" y1="254" x2="300" y2="346" stroke="#cda250" stroke-width="2"/>
+  <!-- 7. Dial Horology Brand & Origin Marking (Classic Analog Clock) -->
+  <g id="dial-brand" opacity="0.8">
+    <text x="300" y="240" text-anchor="middle" fill="#cda250" font-family="'Playfair Display', serif" font-size="12" font-weight="700" letter-spacing="2">CHRONOS</text>
+    <text x="300" y="252" text-anchor="middle" fill="#8f7b58" font-family="'JetBrains Mono', monospace" font-size="6.5" letter-spacing="1">PRECISION HOROLOGY</text>
   </g>
 
   <!-- 8. CLOCK HANDS (Mathematically exact at center 300, 300) -->
@@ -538,16 +534,17 @@
     <circle cx="300" cy="336" r="4" fill="#090a0e" stroke="#adc6ff" stroke-width="1.2"/>
   </g>
 
-  <!-- 9. Center Ruby Jewel Hub -->
+  <!-- 9. Classic Horology Center Arbor Collet & Screw Cap -->
   <g id="center-hub">
-    <!-- Outer Brass Retaining Flange -->
-    <circle cx="300" cy="300" r="17" fill="url(#bezelOuterGrad)" stroke="#ffdea7" stroke-width="1.5" filter="url(#handDropShadow)"/>
-    <!-- Inner Bezel Ring -->
-    <circle cx="300" cy="300" r="12" fill="#1e1f26" stroke="#cda250" stroke-width="1.2"/>
-    <!-- Ruby Gemstone Cabochon -->
-    <circle cx="300" cy="300" r="7.5" fill="url(#rubyGemGrad)" filter="url(#rubyGlow)"/>
+    <!-- Brass Collet Flange -->
+    <circle cx="300" cy="300" r="14" fill="url(#bezelOuterGrad)" stroke="#ffdea7" stroke-width="1.2" filter="url(#handDropShadow)"/>
+    <!-- Polished Steel Arbor Cap -->
+    <circle cx="300" cy="300" r="8" fill="#161922" stroke="#cda250" stroke-width="1"/>
+    <!-- Center Screw -->
+    <circle cx="300" cy="300" r="4" fill="#cda250"/>
+    <line x1="297.5" y1="300" x2="302.5" y2="300" stroke="#161922" stroke-width="1"/>
     <!-- Specular Highlight Pip -->
-    <circle cx="297.5" cy="297.5" r="2.2" fill="#ffffff" opacity="0.85"/>
+    <circle cx="298" cy="298" r="1.5" fill="#ffffff" opacity="0.8"/>
   </g>
 
   <!-- 10. Sapphire Crystal Curved Gleam Overlay -->
@@ -562,44 +559,47 @@
       </div>
 
       <!-- QUICK TAP-TO-PLACE HELPER INFO BANNER -->
-      <div class="w-full max-w-xl mt-3 flex items-center justify-between px-3 py-1.5 rounded-lg bg-surface-container/70 border border-outline-variant/30 text-[10px] font-mono">
+      <div class="w-full max-w-sm sm:max-w-xl mt-2 flex items-center justify-between px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-surface-container/70 border border-outline-variant/30 text-[10px] font-mono">
         <span class="flex items-center gap-1.5 text-primary font-semibold">
-          <span class="material-symbols-outlined text-[15px] animate-pulse">touch_app</span>
-          <span>Tap a pin to select, then tap any clock socket to place it! (Or drag & drop)</span>
+          <span class="material-symbols-outlined text-[14px] sm:text-[15px] animate-pulse">touch_app</span>
+          <span>Tap pin to select, then tap clock socket to place (or drag)</span>
         </span>
         <span class="hidden sm:inline text-outline text-[9px]">Tap placed pin to remove</span>
       </div>
 
-      <!-- 9-PIN INVENTORY TRAY (DIRECTLY BENEATH CLOCK FOR EASY MOBILE REACH) -->
-      <div id="inventory-tray-container" class="w-full max-w-xl mt-2 bg-surface-container-lowest p-2.5 sm:p-3 rounded-xl border border-outline-variant/50 shadow-inner">
-        <div class="flex items-center justify-between mb-2 font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-outline">
-          <span class="font-bold text-on-surface">Time-Warping Pin Inventory (9 Pins)</span>
-          <span class="text-primary-fixed">Tap Pin ➔ Tap Socket</span>
+      <!-- 9-PIN INVENTORY TRAY (CENTERED DIRECTLY BENEATH CLOCK FOR CLEAN MOBILE & DESKTOP ACCESS) -->
+      <div id="inventory-tray-container" class="w-full max-w-sm sm:max-w-xl mt-2 bg-surface-container-lowest p-2 sm:p-2.5 rounded-xl border border-outline-variant/50 shadow-md">
+        <div class="flex items-center justify-between mb-1.5 font-mono text-[10px] uppercase tracking-wider text-outline px-1">
+          <span class="font-bold text-primary flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">pin_invoke</span>
+            <span>Pin Inventory (Fractions)</span>
+          </span>
+          <span class="text-primary-fixed text-[9px]">Select Pin ➔ Tap Socket</span>
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
-          <!-- 3x Forward High (+20m) -->
-          <div class="p-1.5 sm:p-2 rounded-lg bg-surface-container border border-emerald-900/60 flex flex-col items-center">
-            <span class="text-[9px] sm:text-[10px] font-mono font-semibold text-emerald-400 mb-1">+20m (3x)</span>
-            <div id="tray-pins-fh" class="flex items-center justify-center gap-1.5 sm:gap-2 min-h-[44px]"></div>
+        <div class="grid grid-cols-3 gap-1.5 sm:gap-2 font-mono">
+          <!-- 3x Forward High (+1/3) -->
+          <div class="p-1.5 rounded-lg bg-surface-container border border-emerald-900/60 flex flex-col items-center justify-between gap-1">
+            <span class="text-[10px] sm:text-xs font-semibold text-emerald-400">+1/3 (3x)</span>
+            <div id="tray-pins-fh" class="flex items-center justify-center gap-1 min-h-[30px] sm:min-h-[34px]"></div>
           </div>
 
-          <!-- 3x Backward (-15m) -->
-          <div class="p-1.5 sm:p-2 rounded-lg bg-surface-container border border-rose-900/60 flex flex-col items-center">
-            <span class="text-[9px] sm:text-[10px] font-mono font-semibold text-rose-400 mb-1">-15m (3x)</span>
-            <div id="tray-pins-bw" class="flex items-center justify-center gap-1.5 sm:gap-2 min-h-[44px]"></div>
+          <!-- 3x Backward (-1/4) -->
+          <div class="p-1.5 rounded-lg bg-surface-container border border-rose-900/60 flex flex-col items-center justify-between gap-1">
+            <span class="text-[10px] sm:text-xs font-semibold text-rose-400">-1/4 (3x)</span>
+            <div id="tray-pins-bw" class="flex items-center justify-center gap-1 min-h-[30px] sm:min-h-[34px]"></div>
           </div>
 
-          <!-- 3x Forward Low (+10m) -->
-          <div class="p-1.5 sm:p-2 rounded-lg bg-surface-container border border-sky-900/60 flex flex-col items-center">
-            <span class="text-[9px] sm:text-[10px] font-mono font-semibold text-sky-400 mb-1">+10m (3x)</span>
-            <div id="tray-pins-fl" class="flex items-center justify-center gap-1.5 sm:gap-2 min-h-[44px]"></div>
+          <!-- 3x Forward Low (+1/6) -->
+          <div class="p-1.5 rounded-lg bg-surface-container border border-sky-900/60 flex flex-col items-center justify-between gap-1">
+            <span class="text-[10px] sm:text-xs font-semibold text-sky-400">+1/6 (3x)</span>
+            <div id="tray-pins-fl" class="flex items-center justify-center gap-1 min-h-[30px] sm:min-h-[34px]"></div>
           </div>
         </div>
       </div>
 
-      <!-- CONTROL DECK: START, RESET, SPEED (DIRECTLY BENEATH INVENTORY) -->
-      <div class="w-full max-w-xl mt-3 flex flex-col sm:flex-row items-center justify-between gap-3 font-mono">
+      <!-- CONTROL DECK: START, RESET, SPEED -->
+      <div class="w-full max-w-sm sm:max-w-xl mt-2.5 flex flex-col sm:flex-row items-center justify-between gap-2.5 font-mono">
         <!-- Speed Multipliers -->
         <div class="flex items-center gap-1 p-1 bg-surface-container-lowest rounded-lg border border-outline-variant/50">
           <button id="speed-1x" class="px-3 py-1.5 rounded text-xs font-bold transition-all bg-primary-container text-surface-container-lowest">1x</button>
@@ -608,7 +608,7 @@
         </div>
 
         <!-- Master Levers -->
-        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+        <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
           <button id="btn-reset-clock" class="copper-actuator flex-1 sm:flex-none px-4 py-2.5 sm:py-3 rounded-lg font-bold text-xs sm:text-sm tracking-wider uppercase flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition-all">
             <span class="material-symbols-outlined text-base">restart_alt</span>
             <span>RESET</span>
@@ -621,13 +621,13 @@
         </div>
       </div>
       <!-- Quick Legend Below Clock -->
-      <div class="mt-4 flex flex-wrap items-center justify-center gap-4 text-xs font-mono text-outline">
+      <div class="mt-2.5 flex flex-wrap items-center justify-center gap-3 text-xs font-mono text-outline">
         <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-primary"></span> Inner Ring = Hour Hand Triggers</span>
         <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-secondary"></span> Outer Ring = Minute Hand Triggers</span>
       </div>
     </section>
 
-    <!-- RIGHT SIDEBAR: Mechanics Codex & Telemetry -->
+    <!-- RIGHT SIDEBAR: Mechanics Codex & Horology Rules -->
     <aside class="order-3 lg:order-3 w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-outline-variant/30 p-4 shrink-0 bg-surface-container-low flex flex-col justify-between shadow-[-8px_0_24px_rgba(0,0,0,0.7)] z-20">
       <div class="space-y-4">
         <!-- Parchment Card -->
@@ -635,30 +635,25 @@
           <div class="absolute top-1.5 right-1.5 text-primary/30 font-mono text-[9px]">CHRONO CODEX</div>
           <h3 id="codex-title" class="text-sm font-bold text-primary mb-1">Epoch I: The First Escapement</h3>
           <p id="codex-description" class="text-xs text-on-surface-variant leading-relaxed font-sans">
-            Place time-manipulation pins into the concentric sockets to alter hand movements and hit the Target Time before duration expires.
+            Slot horological fraction pins into the concentric sockets to alter hand movements and reach the Target Time before run duration expires.
           </p>
         </div>
 
-        <!-- Pin Modifiers Matrix -->
-        <div class="space-y-2 font-mono text-xs">
-          <div class="text-[10px] uppercase tracking-widest text-outline">Pin Effect Modifiers</div>
-          <div class="flex items-center justify-between p-2 bg-surface-container rounded border-l-2 border-emerald-500">
-            <span class="text-emerald-400 font-semibold flex items-center gap-1">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Forward Pin
-            </span>
-            <span class="text-primary font-bold">+20m (+1/3h)</span>
+        <!-- Mechanism Rules Card -->
+        <div class="p-3 bg-surface-container-lowest rounded-xl border border-outline-variant/40 space-y-2 font-mono text-[11px]">
+          <div class="text-primary font-bold uppercase tracking-wider text-[10px] flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">settings_suggest</span>
+            <span>Trigger Mechanics</span>
           </div>
-          <div class="flex items-center justify-between p-2 bg-surface-container rounded border-l-2 border-rose-500">
-            <span class="text-rose-400 font-semibold flex items-center gap-1">
-              <span class="w-2 h-2 rounded-full bg-rose-500"></span> Backward Pin
-            </span>
-            <span class="text-secondary font-bold">-15m (-1/4h)</span>
-          </div>
-          <div class="flex items-center justify-between p-2 bg-surface-container rounded border-l-2 border-sky-500">
-            <span class="text-sky-400 font-semibold flex items-center gap-1">
-              <span class="w-2 h-2 rounded-full bg-sky-500"></span> Forward Pin
-            </span>
-            <span class="text-tertiary font-bold">+10m (+1/6h)</span>
+          <div class="space-y-1.5 text-on-surface-variant text-[10px]">
+            <div class="p-1.5 rounded bg-surface-container flex items-start gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-secondary mt-0.5 shrink-0"></span>
+              <span><strong>Outer Track (Minutes):</strong> Minute hand applies fraction warp (+1/3, -1/4, +1/6 hr) at 5m socket intervals.</span>
+            </div>
+            <div class="p-1.5 rounded bg-surface-container flex items-start gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-primary mt-0.5 shrink-0"></span>
+              <span><strong>Inner Track (Hours):</strong> Hour hand steps forward/backward while minute hand freezes at trigger point.</span>
+            </div>
           </div>
         </div>
 
@@ -668,15 +663,15 @@
             <span class="material-symbols-outlined text-[13px]">lightbulb</span>
             <span>Chronomancer Tip</span>
           </div>
-          <p>Each pin triggers only once per run. Slot your pins strategically along the sweep of the hands!</p>
+          <p>Inner ring steps the Hour Hand to bridge multi-hour gaps. Outer ring steps the Minute Hand using fraction warps!</p>
         </div>
       </div>
 
-      <!-- Quick Action: Sandbox Calibrator -->
+      <!-- Quick Action: Custom Challenge & Friend Duel -->
       <div class="pt-3 border-t border-outline-variant/30 font-mono">
-        <button onclick="document.getElementById('btn-open-settings').click();" class="w-full py-2 bg-surface-container border border-primary/30 hover:border-primary/60 text-primary text-xs font-bold uppercase rounded transition-colors flex items-center justify-center gap-1.5">
-          <span class="material-symbols-outlined text-sm">tune</span>
-          <span>Custom Sandbox Mode</span>
+        <button onclick="document.getElementById('btn-open-settings').click();" class="w-full py-2 bg-surface-container border border-primary/40 hover:border-primary text-primary text-xs font-bold uppercase rounded transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-base">swords</span>
+          <span>Custom Challenge & Duel</span>
         </button>
       </div>
     </aside>
@@ -816,7 +811,7 @@
         You solved the horological equation! The hands came to rest exactly at the target time.
       </p>
 
-      <div class="p-3 bg-surface-container-lowest rounded-lg border border-outline-variant/40 mb-6 font-mono text-xs flex justify-around">
+      <div class="p-3 bg-surface-container-lowest rounded-lg border border-outline-variant/40 mb-4 font-mono text-xs flex justify-around">
         <div>
           <span class="text-[9px] text-outline block uppercase">Final Time</span>
           <span id="victory-final-time" class="text-primary font-bold text-sm">04:30</span>
@@ -828,6 +823,23 @@
         </div>
       </div>
 
+      <!-- Player Feedback & Reaction Rating Box (Issue 10) -->
+      <div id="victory-feedback-box" class="p-3 bg-surface-container-lowest rounded-lg border border-primary/30 mb-5 text-left font-mono">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[10px] text-primary uppercase font-bold">Kaisa Laga Yeh Level? (Feedback)</span>
+          <span id="feedback-status-msg" class="text-[9px] text-emerald-400 font-bold hidden">Thanks! Saved ✓</span>
+        </div>
+        <div class="flex items-center justify-between gap-1 mb-2">
+          <button type="button" class="feedback-reaction-btn flex-1 py-1 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant text-[11px] text-on-surface transition-all" data-rating="5" data-sentiment="mind_blown">🤯 Mast</button>
+          <button type="button" class="feedback-reaction-btn flex-1 py-1 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant text-[11px] text-on-surface transition-all" data-rating="4" data-sentiment="loved_it">⏱️ Badiya</button>
+          <button type="button" class="feedback-reaction-btn flex-1 py-1 rounded bg-surface-container hover:bg-surface-container-high border border-outline-variant text-[11px] text-on-surface transition-all" data-rating="3" data-sentiment="tricky">🧩 Hard</button>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <input id="feedback-input-text" type="text" maxlength="140" placeholder="Kaisa laga khel ke? Review likhein..." class="flex-1 px-2.5 py-1.5 rounded bg-surface-container border border-outline-variant text-[11px] text-on-surface focus:border-primary focus:outline-none"/>
+          <button id="btn-submit-feedback" type="button" class="px-3 py-1.5 rounded bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 text-[10px] uppercase font-bold shrink-0 transition-colors">Bhejo</button>
+        </div>
+      </div>
+
       <div class="flex items-center gap-3">
         <button id="btn-next-level" class="brass-actuator flex-1 py-3 rounded-lg font-mono font-bold text-xs uppercase tracking-wider shadow-md">
           Next Epoch »
@@ -836,39 +848,89 @@
           Play Again
         </button>
       </div>
+
+      <!-- Duel Victory Share Button -->
+      <button id="btn-share-victory" class="w-full mt-2.5 py-2.5 rounded-lg bg-surface-container border border-primary/40 hover:border-primary text-primary font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all hidden shadow-sm">
+        <span class="material-symbols-outlined text-sm">share</span>
+        <span>Share Victory / Challenge Back 🔗</span>
+      </button>
     </div>
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 7. CONFIGURABLE SETTINGS MODAL (SANDBOX MODE)                              -->
+  <!-- 7. CONFIGURABLE SETTINGS MODAL (CUSTOM CHALLENGE & FRIEND DUEL)            -->
   <!-- ========================================================================= -->
-  <div id="settings-modal-overlay" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-    <div class="w-full max-w-md coin-edge-border rounded-xl bg-surface-container-low border border-primary/40 p-6 shadow-2xl relative font-mono text-xs">
-      <div class="flex justify-between items-center mb-4 pb-2 border-b border-outline-variant/30">
-        <h3 class="font-headline text-base font-bold text-primary">Chrono Parameter Calibration</h3>
-        <button id="btn-close-settings" class="text-on-surface-variant hover:text-on-surface text-sm">✕</button>
+  <div id="settings-modal-overlay" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 hidden">
+    <div class="w-full max-w-lg coin-edge-border rounded-xl bg-surface-container-low border border-primary/50 p-5 sm:p-6 shadow-2xl relative font-mono text-xs">
+      
+      <!-- Screwheads on Corners -->
+      <div class="screwhead absolute top-3 left-3 z-30"></div>
+      <div class="screwhead absolute top-3 right-3 z-30"></div>
+      <div class="screwhead absolute bottom-3 left-3 z-30"></div>
+      <div class="screwhead absolute bottom-3 right-3 z-30"></div>
+
+      <div class="flex justify-between items-center mb-3.5 pb-2.5 border-b border-outline-variant/30">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-xl">swords</span>
+          <div>
+            <h3 class="font-headline text-base font-bold text-primary">Custom Challenge & Friend Duel</h3>
+            <p class="text-[10px] text-on-surface-variant font-sans">Set custom times to test yourself or challenge your friends</p>
+          </div>
+        </div>
+        <button id="btn-close-settings" class="w-7 h-7 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant flex items-center justify-center text-sm">✕</button>
       </div>
 
       <form id="settings-form" class="space-y-3">
-        <div>
-          <label class="block text-[10px] uppercase text-outline mb-1">Starting Time (HH:MM)</label>
-          <input id="setting-start-time" type="time" required class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded text-on-surface focus:border-primary focus:outline-none" value="02:00"/>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-outline mb-1">Starting Time (HH:MM)</label>
+            <input id="setting-start-time" type="time" required class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded text-on-surface focus:border-primary focus:outline-none font-mono text-sm" value="03:35"/>
+          </div>
+
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-primary mb-1">Target Time (HH:MM)</label>
+            <input id="setting-target-time" type="time" required class="w-full px-3 py-2 bg-surface-container border border-primary/60 rounded text-on-surface focus:border-primary focus:outline-none font-mono text-sm" value="05:15"/>
+          </div>
         </div>
 
-        <div>
-          <label class="block text-[10px] uppercase text-outline mb-1">Target Time (HH:MM)</label>
-          <input id="setting-target-time" type="time" required class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded text-on-surface focus:border-primary focus:outline-none" value="04:30"/>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-outline mb-1">Running Duration (Minutes)</label>
+            <input id="setting-duration" type="number" min="10" max="300" step="5" required class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded text-on-surface focus:border-primary focus:outline-none font-mono" value="75"/>
+            <span class="text-[9px] text-outline">Default: 75 minutes</span>
+          </div>
+
+          <div>
+            <label class="block text-[10px] uppercase font-bold text-outline mb-1">Your Name / Challenger Tag</label>
+            <input id="setting-challenger-name" type="text" maxlength="30" placeholder="e.g. Aalok" class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded text-on-surface focus:border-primary focus:outline-none font-mono text-xs"/>
+            <span class="text-[9px] text-outline">Included in friend's duel link</span>
+          </div>
         </div>
 
-        <div>
-          <label class="block text-[10px] uppercase text-outline mb-1">Default Running Duration (Minutes)</label>
-          <input id="setting-duration" type="number" min="10" max="300" step="5" required class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded text-on-surface focus:border-primary focus:outline-none" value="75"/>
-          <span class="text-[9px] text-outline">Default: 75 minutes (1 hour 15 minutes)</span>
+        <!-- Duel Preset Quick Buttons -->
+        <div class="p-2.5 rounded-lg bg-surface-container/70 border border-outline-variant/30 space-y-1.5">
+          <div class="text-[10px] text-outline uppercase font-semibold">Quick Challenge Presets:</div>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" class="preset-duel-btn px-2 py-1 rounded bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant/60 text-[10px] text-primary" data-start="03:35" data-target="05:15">03:35 ➔ 05:15</button>
+            <button type="button" class="preset-duel-btn px-2 py-1 rounded bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant/60 text-[10px] text-secondary" data-start="07:10" data-target="08:15">07:10 ➔ 08:15</button>
+            <button type="button" class="preset-duel-btn px-2 py-1 rounded bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant/60 text-[10px] text-emerald-400" data-start="02:20" data-target="04:30">02:20 ➔ 04:30</button>
+            <button type="button" class="preset-duel-btn px-2 py-1 rounded bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant/60 text-[10px] text-amber-400" data-start="08:45" data-target="11:50">08:45 ➔ 11:50</button>
+            <button type="button" class="preset-duel-btn px-2 py-1 rounded bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant/60 text-[10px] text-sky-400" data-start="01:00" data-target="04:50">01:00 ➔ 04:50</button>
+          </div>
         </div>
 
-        <button type="submit" class="brass-actuator w-full py-2.5 rounded font-bold uppercase tracking-wider mt-4 shadow-md">
-          Apply & Recalibrate Clock
-        </button>
+        <!-- Action Buttons -->
+        <div class="pt-2 flex flex-col sm:flex-row items-center gap-2.5">
+          <button type="submit" id="btn-play-custom-challenge" class="brass-actuator w-full sm:flex-1 py-2.5 rounded font-bold uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5">
+            <span class="material-symbols-outlined text-base">play_arrow</span>
+            <span>Play Solo Challenge</span>
+          </button>
+
+          <button type="button" id="btn-share-friend-challenge" class="copper-actuator w-full sm:flex-1 py-2.5 rounded font-bold uppercase tracking-wider shadow-md flex items-center justify-center gap-1.5">
+            <span class="material-symbols-outlined text-base">share</span>
+            <span>Challenge a Friend 🔗</span>
+          </button>
+        </div>
       </form>
     </div>
   </div>
@@ -921,7 +983,7 @@
           <div class="p-2 rounded bg-surface-container-lowest font-mono text-[10px] text-primary flex items-center justify-between border border-outline-variant/30">
             <span>01:00 Start + 75m Run = 02:15</span>
             <span>➔ Target: 02:35</span>
-            <span class="text-emerald-400 font-bold">+20m Needed!</span>
+            <span class="text-emerald-400 font-bold">+1/3 Needed!</span>
           </div>
         </div>
 
@@ -938,7 +1000,7 @@
                 <span>Outer Ring (Cyan: 0m..55m)</span>
               </div>
               <p class="text-on-surface-variant font-sans text-[11px]">
-                Triggered by the <strong>Minute Hand</strong> as it sweeps across the 5-minute ticks.
+                Triggered by the <strong>Minute Hand</strong> using fraction warps (+1/3, -1/4, +1/6).
               </p>
             </div>
             <div class="p-2.5 rounded bg-surface-container-lowest border border-amber-500/40">
@@ -947,7 +1009,7 @@
                 <span>Inner Ring (Amber: 1h..12h)</span>
               </div>
               <p class="text-on-surface-variant font-sans text-[11px]">
-                Triggered by the <strong>Hour Hand</strong> as it sweeps past Roman numerals.
+                Triggered by the <strong>Hour Hand</strong> (Minute hand stops, Hour hand steps forward/backward to bridge hour gaps).
               </p>
             </div>
           </div>
@@ -957,20 +1019,20 @@
         <div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant/40 space-y-2">
           <div class="flex items-center gap-2 font-mono text-primary font-bold text-[11px] uppercase tracking-wider">
             <span class="w-5 h-5 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-mono text-xs font-bold">3</span>
-            <span>The Time-Warping Pins</span>
+            <span>The Time Fraction Pins</span>
           </div>
           <div class="grid grid-cols-3 gap-2 font-mono text-[10px] text-center">
             <div class="p-2 rounded bg-emerald-950/40 border border-emerald-500/50">
-              <span class="text-emerald-400 font-bold text-xs block mb-0.5">+20m Forward</span>
-              <span class="text-on-surface-variant font-sans text-[10px]">Advances clock 20 min</span>
+              <span class="text-emerald-400 font-bold text-xs block mb-0.5">+1/3 Forward</span>
+              <span class="text-on-surface-variant font-sans text-[10px]">+1/3 hr (20m) / +1h step</span>
             </div>
             <div class="p-2 rounded bg-rose-950/40 border border-rose-500/50">
-              <span class="text-rose-400 font-bold text-xs block mb-0.5">-15m Backward</span>
-              <span class="text-on-surface-variant font-sans text-[10px]">Rewinds clock 15 min</span>
+              <span class="text-rose-400 font-bold text-xs block mb-0.5">-1/4 Backward</span>
+              <span class="text-on-surface-variant font-sans text-[10px]">-1/4 hr (15m) / -1h step</span>
             </div>
             <div class="p-2 rounded bg-sky-950/40 border border-sky-500/50">
-              <span class="text-sky-400 font-bold text-xs block mb-0.5">+10m Forward</span>
-              <span class="text-on-surface-variant font-sans text-[10px]">Advances clock 10 min</span>
+              <span class="text-sky-400 font-bold text-xs block mb-0.5">+1/6 Forward</span>
+              <span class="text-on-surface-variant font-sans text-[10px]">+1/6 hr (10m) / +1h step</span>
             </div>
           </div>
         </div>
