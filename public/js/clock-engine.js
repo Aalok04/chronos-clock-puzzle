@@ -83,7 +83,7 @@ class ClockEngine {
       });
     });
 
-    this.notifyTick(false, false);
+    this.notifyTick(false, false, 'reset');
     return true;
   }
 
@@ -318,7 +318,7 @@ class ClockEngine {
       displayedTime: this.formatMinutesToTime(this.displayedTimeMins)
     });
 
-    this.notifyTick(true); // Smooth transition flag (0.6s CSS transition)
+    this.notifyTick(true, false, timeAdjustment < 0 ? 'backward' : 'forward'); // Smooth transition flag (0.6s CSS transition)
 
     // Wait for the hands to smoothly travel and reach their target positions
     await this.delay(600);
@@ -377,7 +377,8 @@ class ClockEngine {
         progressPercent: 100,
         state: 'TIME_LOCKED',
         smooth: true,
-        rewind: false
+        rewind: false,
+        direction: 'forward'
       });
 
       if (window.chronosAudio) window.chronosAudio.playVictory();
@@ -420,7 +421,7 @@ class ClockEngine {
     // Smoothly rewind hands back to starting time
     this.displayedTimeMins = this.startTimeMins;
     this.elapsedDurationMins = 0;
-    this.notifyTick(true, true); // smooth + rewind flag
+    this.notifyTick(true, true, 'rewind'); // smooth + rewind flag
 
     // Reset pin states and return pins to inventory
     await this.delay(1600);
@@ -433,7 +434,7 @@ class ClockEngine {
       targetTime: this.targetTimeStr
     });
 
-    this.notifyTick();
+    this.notifyTick(false, false, 'reset');
   }
 
   manualReset() {
@@ -441,7 +442,7 @@ class ClockEngine {
     this.autoRewindReset();
   }
 
-  notifyTick(smooth = false, rewind = false) {
+  notifyTick(smooth = false, rewind = false, direction = 'forward') {
     const { minuteAngle, hourAngle } = this.getAngles();
     const progressPercent = Math.min(100, (this.elapsedDurationMins / this.runningDurationMins) * 100);
 
@@ -454,7 +455,8 @@ class ClockEngine {
       progressPercent,
       state: this.state,
       smooth,
-      rewind
+      rewind,
+      direction
     });
   }
 

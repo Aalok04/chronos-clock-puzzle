@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const db = require('../config/db');
 const { optionalAuth } = require('../middleware/auth');
+const sessionTracker = require('../services/session-tracker');
 
 // Path to persistent disk storage for player reviews/feedback
 const feedbackFilePath = path.join(__dirname, '..', 'data', 'player_feedback.json');
@@ -38,6 +39,32 @@ router.get('/puzzles', async (req, res) => {
   } catch (err) {
     console.error('[Get Puzzles Error]:', err);
     return res.status(500).json({ success: false, error: 'Could not fetch chronometer epochs.' });
+  }
+});
+
+// POST /api/game/heartbeat - Record player presence & activity for live tracking
+router.post('/heartbeat', optionalAuth, (req, res) => {
+  try {
+    const { sessionId, level, state, username } = req.body;
+    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+    const ip = typeof rawIp === 'string' ? rawIp.split(',')[0].trim() : '127.0.0.1';
+    const playerHandle = username || (req.user ? req.user.username : 'Guest Chronomancer');
+    const userId = req.user ? req.user.id : null;
+
+    const session = sessionTracker.recordHeartbeat(sessionId || `anon-${Date.now()}`, {
+      userId,
+      username: playerHandle,
+      level: parseInt(level, 10) || 1,
+      state: state || 'idle',
+      ip
+    });
+
+    return res.json({
+      success: true,
+      activeCounts: sessionTracker.getCounts()
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: 'Heartbeat error.' });
   }
 });
 

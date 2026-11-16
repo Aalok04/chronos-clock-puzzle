@@ -253,11 +253,16 @@
 
       <!-- Expandable Solution Hint Box -->
       <div id="hint-box" class="w-full max-w-xl mb-2.5 p-3 rounded-lg bg-primary-container/20 border border-primary/50 text-on-surface font-mono text-[11px] hidden transition-all shadow-md">
-        <div class="flex items-start gap-2">
-          <span class="material-symbols-outlined text-primary text-base shrink-0">info</span>
-          <div id="hint-box-text" class="leading-relaxed">
-            <strong>Hint for Epoch 1:</strong> Place one <strong>Green (+20m) Forward Pin</strong> into <strong>Inner Socket "2h"</strong> (or Outer Socket "15m"). Then press <strong>START CLOCK</strong>!
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-start gap-2">
+            <span class="material-symbols-outlined text-primary text-base shrink-0">info</span>
+            <div id="hint-box-text" class="leading-relaxed">
+              <strong>Hint for Epoch 1:</strong> Place one <strong>Green (+20m) Forward Pin</strong> into <strong>Inner Socket "2h"</strong> (or Outer Socket "15m"). Then press <strong>START CLOCK</strong>!
+            </div>
           </div>
+          <button id="btn-close-hint" type="button" class="text-on-surface-variant hover:text-primary p-0.5 rounded transition-colors shrink-0" title="Dismiss Hint">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
         </div>
       </div>
 
@@ -700,7 +705,10 @@
   <footer class="w-full border-t border-outline-variant/30 bg-surface-container-lowest px-6 py-3 text-center text-outline font-mono text-[10px] z-30">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
       <span>CHRONOS: Time Manipulation Clock Puzzle</span>
-      <span>Tap or Drag Pins to Sockets • Hit the Target Time</span>
+      <div class="flex items-center gap-4">
+        <span>Tap or Drag Pins to Sockets • Hit the Target Time</span>
+        <a href="/admin" class="hover:text-primary transition-colors flex items-center gap-1 text-[10px] text-outline hover:text-primary-fixed"><span class="material-symbols-outlined text-[13px]">shield_person</span>Admin Deck</a>
+      </div>
     </div>
   </footer>
 
@@ -857,11 +865,11 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <button id="btn-next-level" class="brass-actuator flex-1 py-3 rounded-lg font-mono font-bold text-xs uppercase tracking-wider shadow-md">
-          Next Epoch »
-        </button>
         <button id="btn-play-again" class="copper-actuator flex-1 py-3 rounded-lg font-mono font-bold text-xs uppercase tracking-wider shadow-md">
           Play Again
+        </button>
+        <button id="btn-next-level" class="brass-actuator flex-1 py-3 rounded-lg font-mono font-bold text-xs uppercase tracking-wider shadow-md">
+          Next Epoch »
         </button>
       </div>
 
@@ -973,34 +981,57 @@
       <!-- Header -->
       <div class="p-4 sm:p-5 border-b border-outline-variant/40 flex items-center justify-between bg-surface-container">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary">
-            <span class="material-symbols-outlined text-base">menu_book</span>
+          <div class="w-9 h-9 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary shadow-sm">
+            <span class="material-symbols-outlined text-lg">school</span>
           </div>
           <div>
-            <h2 class="text-base sm:text-lg font-bold text-primary tracking-wide">CHRONOS: Field Guide & Tutorial</h2>
-            <p class="font-mono text-[10px] text-on-surface-variant">Simple Rules to Master the Clock</p>
+            <div class="flex items-center gap-2">
+              <h2 class="text-base sm:text-lg font-bold text-primary tracking-wide">CHRONOS: Field Guide & Tutorial</h2>
+              <span class="px-2 py-0.5 rounded bg-primary/20 border border-primary/50 text-primary-fixed text-[9px] font-mono font-bold tracking-widest uppercase">Level 1 Academy</span>
+            </div>
+            <p class="font-mono text-[10px] text-on-surface-variant">Essential Clock Rules & Level 1 Quick Start</p>
           </div>
         </div>
-        <button id="btn-close-tutorial" class="w-7 h-7 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-mono text-sm">✕</button>
+        <button id="btn-close-tutorial" class="w-7 h-7 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-mono text-sm cursor-pointer" title="Close Tutorial">✕</button>
       </div>
 
       <!-- Tutorial Content Body (4 Clear Rules) -->
       <div class="p-4 sm:p-6 space-y-3.5 max-h-[72vh] overflow-y-auto font-sans text-xs text-on-surface">
         
+        <!-- Level 1 Compulsory Quick Start Box -->
+        <div class="p-4 rounded-xl bg-gradient-to-r from-primary/15 via-surface-container to-surface-container border-2 border-primary/60 shadow-lg space-y-2">
+          <div class="flex items-center gap-2 font-mono text-primary font-bold text-xs uppercase tracking-wider">
+            <span class="material-symbols-outlined text-[18px]">lightbulb</span>
+            <span>Level 1 Mission: How to Solve in 30 Seconds</span>
+          </div>
+          <p class="text-on-surface leading-relaxed text-[11px]">
+            In <strong>Epoch 1</strong>, the escapement starts at <strong>01:00</strong> and runs naturally for 75m to <strong>02:15</strong>. The target time is <strong>02:35</strong>. You need an extra <strong>+20 minutes (+1/3 fraction)</strong> to synchronize the dial!
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-[10px] pt-1">
+            <div class="p-2 rounded bg-surface-container-lowest/90 border border-primary/40 flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-bold">1</span>
+              <span>Select <strong>Green (+1/3) Pin</strong> from the tray.</span>
+            </div>
+            <div class="p-2 rounded bg-surface-container-lowest/90 border border-sky-400/40 flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-sky-400 text-surface-container-lowest flex items-center justify-center font-bold">2</span>
+              <span>Tap or drop into <strong>Outer Socket 15m</strong>.</span>
+            </div>
+            <div class="p-2 rounded bg-surface-container-lowest/90 border border-emerald-400/40 flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full bg-emerald-400 text-surface-container-lowest flex items-center justify-center font-bold">3</span>
+              <span>Click <strong>START CLOCK</strong> to warp to 02:35!</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Step 1: The Goal & The Math -->
         <div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant/40 space-y-1.5">
           <div class="flex items-center gap-2 font-mono text-primary font-bold text-[11px] uppercase tracking-wider">
             <span class="w-5 h-5 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-mono text-xs font-bold">1</span>
-            <span>The Goal: Hit the Target Time</span>
+            <span>The General Rule: Hit the Target Time</span>
           </div>
           <p class="text-on-surface-variant leading-relaxed">
-            The clock runs for a set duration (e.g. <strong>75 minutes</strong>). Without any pins, natural time will land somewhere (e.g. 01:00 + 75m = 02:15). Your mission is to slot time-warping pins to make the clock finish on the exact <strong>Target Time</strong> (e.g. 02:35)!
+            Every epoch runs for a fixed duration (75m). Without pins, time advances normally. Slot concentric fraction pins to warp hand positions and reach the exact <strong>Target Time</strong> before the running duration expires.
           </p>
-          <div class="p-2 rounded bg-surface-container-lowest font-mono text-[10px] text-primary flex items-center justify-between border border-outline-variant/30">
-            <span>01:00 Start + 75m Run = 02:15</span>
-            <span>➔ Target: 02:35</span>
-            <span class="text-emerald-400 font-bold">+1/3 Needed!</span>
-          </div>
         </div>
 
         <!-- Step 2: The Two Clock Rings -->

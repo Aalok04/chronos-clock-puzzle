@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CHRONOS: Owner & Administrator Control Deck</title>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'surface-container-lowest': '#0d0d10',
+            'surface-container-low': '#131317',
+            'surface-container': '#1a1a21',
+            'surface-container-high': '#22222b',
+            'surface-container-highest': '#2b2b36',
+            'primary': '#eec06a',
+            'primary-fixed': '#ffe09f',
+            'primary-fixed-dim': '#eec06a',
+            'secondary': '#82d3e5',
+            'secondary-fixed': '#a6eeff',
+            'on-surface': '#f4f3ef',
+            'on-surface-variant': '#a8a69e',
+            'outline': '#6f6c65',
+            'outline-variant': '#3e3d38'
+          },
+          fontFamily: {
+            mono: ['"JetBrains Mono"', 'monospace'],
+            headline: ['"Playfair Display"', 'serif'],
+            sans: ['system-ui', '-apple-system', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="/css/style.css"/>
+
+  <style>
+    @keyframes pulse-beacon {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.35); opacity: 0.3; }
+    }
+    .pulse-beacon {
+      animation: pulse-beacon 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+
+<body class="bg-surface-container-lowest text-on-surface min-h-screen font-headline flex flex-col select-none">
+
+  <!-- ========================================================================= -->
+  <!-- 1. TOP COMMAND BAR                                                        -->
+  <!-- ========================================================================= -->
+  <header class="w-full bg-surface-container-low/95 backdrop-blur-md border-b border-outline-variant/50 sticky top-0 z-40 shadow-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Logo & System Branding -->
+      <div class="flex items-center gap-3">
+        <a href="/" class="w-9 h-9 rounded-full bg-surface-container border border-primary/50 flex items-center justify-center text-primary shadow-lg shadow-primary/10 hover:scale-105 transition-transform">
+          <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+        </a>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-wider text-primary uppercase">CHRONOS</h1>
+            <span class="text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-primary/20 border border-primary/40 text-primary-fixed font-bold">Owner Control Deck</span>
+          </div>
+          <p class="font-mono text-on-surface-variant text-[10px] tracking-wide">Platform Telemetry, Scholar Roster & Feedback Hub</p>
+        </div>
+      </div>
+
+      <!-- Live Sync Beacon & Header Controls -->
+      <div class="flex items-center flex-wrap gap-2.5 sm:gap-3 font-mono text-xs">
+        
+        <!-- Live Status Badge -->
+        <div class="px-2.5 py-1.5 rounded-lg bg-surface-container border border-outline-variant/50 flex items-center gap-2 text-[11px]">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="pulse-beacon absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          <span id="live-status-text" class="text-emerald-400 font-bold uppercase tracking-wider">Live Telemetry</span>
+          <span id="last-sync-time" class="text-outline text-[10px] hidden sm:inline">10:45:00</span>
+        </div>
+
+        <!-- Auto-Refresh Toggle -->
+        <button id="btn-toggle-auto-refresh" class="px-2.5 py-1.5 rounded-lg bg-surface-container-high border border-outline-variant/60 hover:border-primary/50 text-on-surface-variant hover:text-primary transition-all flex items-center gap-1.5 text-[11px]" title="Toggle 10s Live Auto Refresh">
+          <span class="material-symbols-outlined text-[15px] text-primary">autorenew</span>
+          <span id="auto-refresh-label">Auto (10s): ON</span>
+        </button>
+
+        <!-- Manual Sync Button -->
+        <button id="btn-manual-sync" class="px-3 py-1.5 rounded-lg bg-primary/20 hover:bg-primary/30 border border-primary/60 text-primary font-bold transition-all flex items-center gap-1 text-[11px] shadow-sm active:scale-95">
+          <span class="material-symbols-outlined text-[15px]">sync</span>
+          Sync
+        </button>
+
+        <!-- Quick Chamber Links -->
+        <a href="/game" class="px-2.5 py-1.5 rounded-lg bg-surface-container border border-outline-variant/50 hover:border-primary/50 text-on-surface hover:text-primary transition-colors flex items-center gap-1 text-[11px]">
+          <span class="material-symbols-outlined text-[15px] text-secondary">videogame_asset</span>
+          <span class="hidden md:inline">Game Chamber</span>
+        </a>
+
+        <!-- Admin Identity & Logout -->
+        <div id="admin-user-pill" class="hidden items-center gap-2 pl-2 border-l border-outline-variant/50">
+          <div class="text-right">
+            <span id="admin-username-display" class="font-bold text-primary block leading-none text-[11px]">ARCHITECT</span>
+            <span class="text-[9px] text-outline block leading-tight">Master Clearance</span>
+          </div>
+          <button id="btn-admin-logout" class="p-1.5 rounded bg-surface-container-high hover:bg-rose-500/20 text-on-surface-variant hover:text-rose-400 border border-outline-variant/50 transition-colors" title="Lock Deck & Sign Out">
+            <span class="material-symbols-outlined text-[16px]">lock</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- 2. MAIN CONTENT AREA                                                      -->
+  <!-- ========================================================================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+    <!-- A. FOUR STAT METRIC CARDS -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Stat 1: Active Chronomancers -->
+      <div class="p-5 rounded-xl bg-surface-container-low border border-primary/30 shadow-xl relative overflow-hidden group hover:border-primary/60 transition-all">
+        <div class="flex items-center justify-between pb-3">
+          <span class="font-mono text-xs uppercase tracking-wider text-outline font-semibold">Active Players</span>
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <span class="material-symbols-outlined text-[18px]">sensors</span>
+          </div>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span id="metric-active-total" class="font-mono text-3xl sm:text-4xl font-extrabold text-emerald-400">0</span>
+          <span class="font-mono text-xs text-on-surface-variant">online</span>
+        </div>
+        <div class="mt-3 pt-3 border-t border-outline-variant/30 flex items-center justify-between font-mono text-[11px] text-on-surface-variant">
+          <span><strong id="metric-active-users" class="text-primary font-bold">0</strong> Scholars</span>
+          <span>●</span>
+          <span><strong id="metric-active-guests" class="text-secondary font-bold">0</strong> Guests</span>
+        </div>
+      </div>
+
+      <!-- Stat 2: Registered Accounts -->
+      <div class="p-5 rounded-xl bg-surface-container-low border border-outline-variant/50 shadow-xl relative overflow-hidden group hover:border-primary/60 transition-all">
+        <div class="flex items-center justify-between pb-3">
+          <span class="font-mono text-xs uppercase tracking-wider text-outline font-semibold">Total Accounts</span>
+          <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-[18px]">group</span>
+          </div>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span id="metric-total-users" class="font-mono text-3xl sm:text-4xl font-extrabold text-primary">0</span>
+          <span class="font-mono text-xs text-on-surface-variant">registered</span>
+        </div>
+        <div class="mt-3 pt-3 border-t border-outline-variant/30 flex items-center justify-between font-mono text-[11px] text-on-surface-variant">
+          <span>Archive Database</span>
+          <button id="btn-quick-view-roster" class="text-primary hover:underline flex items-center gap-0.5">View Roster ➔</button>
+        </div>
+      </div>
+
+      <!-- Stat 3: Player Feedback & Rating -->
+      <div class="p-5 rounded-xl bg-surface-container-low border border-outline-variant/50 shadow-xl relative overflow-hidden group hover:border-primary/60 transition-all">
+        <div class="flex items-center justify-between pb-3">
+          <span class="font-mono text-xs uppercase tracking-wider text-outline font-semibold">Feedback & Rating</span>
+          <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <span class="material-symbols-outlined text-[18px]">star</span>
+          </div>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span id="metric-avg-rating" class="font-mono text-3xl sm:text-4xl font-extrabold text-amber-400">0.0</span>
+          <span class="font-mono text-xs text-amber-300">★ / 5.0</span>
+        </div>
+        <div class="mt-3 pt-3 border-t border-outline-variant/30 flex items-center justify-between font-mono text-[11px] text-on-surface-variant">
+          <span><strong id="metric-total-feedbacks" class="text-amber-400">0</strong> Total Reviews</span>
+          <button id="btn-quick-view-feedback" class="text-amber-400 hover:underline">Inspect ➔</button>
+        </div>
+      </div>
+
+      <!-- Stat 4: Gameplay Attempts & Database Engine -->
+      <div class="p-5 rounded-xl bg-surface-container-low border border-outline-variant/50 shadow-xl relative overflow-hidden group hover:border-primary/60 transition-all">
+        <div class="flex items-center justify-between pb-3">
+          <span class="font-mono text-xs uppercase tracking-wider text-outline font-semibold">Resonance & Engine</span>
+          <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+            <span class="material-symbols-outlined text-[18px]">timer</span>
+          </div>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span id="metric-win-rate" class="font-mono text-3xl sm:text-4xl font-extrabold text-sky-400">0%</span>
+          <span class="font-mono text-xs text-on-surface-variant">win rate</span>
+        </div>
+        <div class="mt-3 pt-3 border-t border-outline-variant/30 flex items-center justify-between font-mono text-[11px] text-on-surface-variant">
+          <span><strong id="metric-total-attempts" class="text-sky-400">0</strong> Attempts</span>
+          <span id="metric-db-mode" class="text-[10px] px-1.5 py-0.5 rounded bg-surface-container border border-outline-variant/40 truncate max-w-[100px]">MySQL</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- B. TAB NAVIGATION HEADER -->
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant/50 pb-2">
+      <nav class="flex items-center gap-2 overflow-x-auto pb-1" id="admin-tabs">
+        <button data-tab="live" class="admin-tab-btn active px-4 py-2 rounded-lg bg-primary/20 text-primary border border-primary font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all">
+          <span class="material-symbols-outlined text-[16px]">stream</span>
+          Live Stream
+        </button>
+        <button data-tab="users" class="admin-tab-btn px-4 py-2 rounded-lg bg-surface-container-high text-on-surface-variant border border-outline-variant/40 hover:text-on-surface font-mono text-xs font-semibold uppercase tracking-wider flex items-center gap-2 transition-all">
+          <span class="material-symbols-outlined text-[16px]">manage_accounts</span>
+          Scholar Accounts
+        </button>
+        <button data-tab="feedback" class="admin-tab-btn px-4 py-2 rounded-lg bg-surface-container-high text-on-surface-variant border border-outline-variant/40 hover:text-on-surface font-mono text-xs font-semibold uppercase tracking-wider flex items-center gap-2 transition-all">
+          <span class="material-symbols-outlined text-[16px]">reviews</span>
+          Feedback Hub
+        </button>
+        <button data-tab="telemetry" class="admin-tab-btn px-4 py-2 rounded-lg bg-surface-container-high text-on-surface-variant border border-outline-variant/40 hover:text-on-surface font-mono text-xs font-semibold uppercase tracking-wider flex items-center gap-2 transition-all">
+          <span class="material-symbols-outlined text-[16px]">terminal</span>
+          System Engine
+        </button>
+      </nav>
+
+      <!-- Search / Action Toolbar -->
+      <div id="tab-action-bar" class="flex items-center gap-2 font-mono text-xs">
+        <div id="search-container" class="relative hidden">
+          <input type="text" id="admin-search-input" placeholder="Search..." class="bg-surface-container-high border border-outline-variant/60 rounded-lg pl-8 pr-3 py-1.5 text-xs text-on-surface focus:outline-none focus:border-primary w-48 sm:w-64"/>
+          <span class="material-symbols-outlined text-[16px] text-outline absolute left-2.5 top-2 pointer-events-none">search</span>
+        </div>
+        <button id="btn-export-csv" class="px-3 py-1.5 rounded-lg bg-surface-container-high border border-outline-variant/60 hover:border-primary/50 text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1.5 text-[11px] hidden">
+          <span class="material-symbols-outlined text-[15px]">download</span>
+          Export CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- C. TAB PANES -->
+
+    <!-- TAB 1: LIVE ACTIVITY STREAM -->
+    <section id="pane-live" class="admin-tab-pane space-y-4">
+      <div class="rounded-xl bg-surface-container-low border border-outline-variant/40 overflow-hidden shadow-xl">
+        <div class="p-4 bg-surface-container border-b border-outline-variant/40 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="font-bold text-sm text-primary tracking-wider uppercase flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">radar</span>
+              Real-Time Active Player Sessions
+            </h2>
+            <p class="font-mono text-xs text-on-surface-variant">Live heartbeat connections within the last 120 seconds</p>
+          </div>
+          <span class="font-mono text-[11px] px-2.5 py-1 rounded bg-surface-container-highest text-primary-fixed border border-primary/20">
+            Auto-Pruning: 120s Timeout
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left font-mono text-xs">
+            <thead class="bg-surface-container-lowest/80 text-outline uppercase text-[10px] tracking-wider border-b border-outline-variant/30">
+              <tr>
+                <th class="py-3 px-4">Chronomancer Handle</th>
+                <th class="py-3 px-4">Scholar Type</th>
+                <th class="py-3 px-4">Active Epoch / Level</th>
+                <th class="py-3 px-4">State</th>
+                <th class="py-3 px-4">Client Node</th>
+                <th class="py-3 px-4 text-right">Last Ping</th>
+              </tr>
+            </thead>
+            <tbody id="live-players-tbody" class="divide-y divide-outline-variant/20">
+              <tr>
+                <td colspan="6" class="py-10 text-center text-outline">
+                  <div class="flex flex-col items-center gap-2">
+                    <span class="material-symbols-outlined text-3xl animate-spin text-primary">hourglass_empty</span>
+                    <span>Scanning temporal resonant frequencies...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: SCHOLAR ACCOUNTS ROSTER -->
+    <section id="pane-users" class="admin-tab-pane hidden space-y-4">
+      <div class="rounded-xl bg-surface-container-low border border-outline-variant/40 overflow-hidden shadow-xl">
+        <div class="p-4 bg-surface-container border-b border-outline-variant/40 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="font-bold text-sm text-primary tracking-wider uppercase flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">badge</span>
+              Registered Scholar Registry
+            </h2>
+            <p class="font-mono text-xs text-on-surface-variant">Complete player accounts created in the system archive</p>
+          </div>
+          <div class="flex items-center gap-2 font-mono text-xs">
+            <span class="text-outline text-[11px]">Filter Role:</span>
+            <select id="user-role-filter" class="bg-surface-container-high border border-outline-variant/60 rounded px-2.5 py-1 text-xs text-on-surface focus:outline-none">
+              <option value="all">All Roles</option>
+              <option value="student">Students</option>
+              <option value="admin">Administrators</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left font-mono text-xs">
+            <thead class="bg-surface-container-lowest/80 text-outline uppercase text-[10px] tracking-wider border-b border-outline-variant/30">
+              <tr>
+                <th class="py-3 px-4">ID</th>
+                <th class="py-3 px-4">Handle</th>
+                <th class="py-3 px-4">Email</th>
+                <th class="py-3 px-4">Clearance Role</th>
+                <th class="py-3 px-4">Rank Title</th>
+                <th class="py-3 px-4">Level</th>
+                <th class="py-3 px-4">Solved</th>
+                <th class="py-3 px-4 text-right">Joined</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody" class="divide-y divide-outline-variant/20">
+              <tr>
+                <td colspan="8" class="py-8 text-center text-outline">Loading registered scholars...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: FEEDBACK HUB -->
+    <section id="pane-feedback" class="admin-tab-pane hidden space-y-4">
+      
+      <!-- Sentiment Breakdown Bar -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="p-3 rounded-lg bg-surface-container-low border border-primary/20 flex items-center gap-3">
+          <span class="text-2xl">🤯</span>
+          <div>
+            <span class="font-mono text-lg font-bold text-primary block leading-none" id="sentiment-mast-count">0</span>
+            <span class="font-mono text-[10px] text-outline uppercase">Mast (Loved It)</span>
+          </div>
+        </div>
+        <div class="p-3 rounded-lg bg-surface-container-low border border-secondary/20 flex items-center gap-3">
+          <span class="text-2xl">⏱️</span>
+          <div>
+            <span class="font-mono text-lg font-bold text-secondary block leading-none" id="sentiment-badiya-count">0</span>
+            <span class="font-mono text-[10px] text-outline uppercase">Badiya (Good)</span>
+          </div>
+        </div>
+        <div class="p-3 rounded-lg bg-surface-container-low border border-amber-500/20 flex items-center gap-3">
+          <span class="text-2xl">🧩</span>
+          <div>
+            <span class="font-mono text-lg font-bold text-amber-400 block leading-none" id="sentiment-hard-count">0</span>
+            <span class="font-mono text-[10px] text-outline uppercase">Hard (Challenging)</span>
+          </div>
+        </div>
+        <div class="p-3 rounded-lg bg-surface-container-low border border-outline-variant/40 flex items-center gap-3">
+          <span class="material-symbols-outlined text-2xl text-primary">rate_review</span>
+          <div>
+            <span class="font-mono text-lg font-bold text-on-surface block leading-none" id="feedback-hub-total">0</span>
+            <span class="font-mono text-[10px] text-outline uppercase">Total Submissions</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters & Feedback Feed -->
+      <div class="rounded-xl bg-surface-container-low border border-outline-variant/40 overflow-hidden shadow-xl">
+        <div class="p-4 bg-surface-container border-b border-outline-variant/40 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <h2 class="font-bold text-sm text-primary tracking-wider uppercase flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">forum</span>
+              Collected Player Reviews
+            </h2>
+          </div>
+
+          <!-- Dynamic Filter Selects -->
+          <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
+            <select id="filter-feedback-sentiment" class="bg-surface-container-high border border-outline-variant/60 rounded px-2.5 py-1 text-xs text-on-surface focus:outline-none">
+              <option value="all">All Sentiments</option>
+              <option value="loved_it">🤯 Mast</option>
+              <option value="badiya">⏱️ Badiya</option>
+              <option value="hard">🧩 Hard</option>
+            </select>
+            <select id="filter-feedback-rating" class="bg-surface-container-high border border-outline-variant/60 rounded px-2.5 py-1 text-xs text-on-surface focus:outline-none">
+              <option value="all">All Ratings</option>
+              <option value="5">5 Stars ★★★★★</option>
+              <option value="4">4 Stars ★★★★</option>
+              <option value="3">3 Stars ★★★</option>
+              <option value="2">2 Stars ★★</option>
+              <option value="1">1 Star ★</option>
+            </select>
+            <select id="filter-feedback-level" class="bg-surface-container-high border border-outline-variant/60 rounded px-2.5 py-1 text-xs text-on-surface focus:outline-none">
+              <option value="all">All Epochs</option>
+              <option value="1">Epoch 1</option>
+              <option value="2">Epoch 2</option>
+              <option value="3">Epoch 3</option>
+              <option value="4">Epoch 4</option>
+              <option value="5">Epoch 5</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Feedbacks Grid / List -->
+        <div id="feedbacks-container" class="p-4 sm:p-6 divide-y divide-outline-variant/20 space-y-4">
+          <div class="text-center py-10 text-outline font-mono text-xs">
+            Scanning for player feedback...
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: SYSTEM ENGINE & TELEMETRY -->
+    <section id="pane-telemetry" class="admin-tab-pane hidden space-y-4 font-mono text-xs">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Node.js & Server Engine -->
+        <div class="p-5 rounded-xl bg-surface-container-low border border-outline-variant/40 space-y-3">
+          <h3 class="font-bold text-sm text-primary flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">dns</span>
+            Node Runtime & Server Telemetry
+          </h3>
+          <div class="space-y-2 pt-2 text-on-surface-variant">
+            <div class="flex justify-between py-1 border-b border-outline-variant/20">
+              <span class="text-outline">Engine Version:</span>
+              <span id="tel-node-ver" class="text-primary font-bold">Node.js</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-outline-variant/20">
+              <span class="text-outline">Server Uptime:</span>
+              <span id="tel-uptime" class="text-on-surface">0s</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-outline-variant/20">
+              <span class="text-outline">Heap Memory Allocation:</span>
+              <span id="tel-memory" class="text-secondary font-bold">0 MB</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-outline-variant/20">
+              <span class="text-outline">Server Time (UTC):</span>
+              <span id="tel-timestamp" class="text-on-surface">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Database Layer -->
+        <div class="p-5 rounded-xl bg-surface-container-low border border-outline-variant/40 space-y-3">
+          <h3 class="font-bold text-sm text-primary flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px]">database</span>
+            Database Synchronization
+          </h3>
+          <div class="space-y-2 pt-2 text-on-surface-variant">
+            <div class="flex justify-between py-1 border-b border-outline-variant/20">
+              <span class="text-outline">Database Engine:</span>
+              <span id="tel-db-mode" class="text-primary font-bold">Checking...</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-outline-variant/20">
+              <span class="text-outline">Target Host:</span>
+              <span id="tel-db-host" class="text-on-surface">127.0.0.1</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-outline-variant/20">
+              <span class="text-outline">Database Name:</span>
+              <span id="tel-db-name" class="text-on-surface">chronos_clock_db</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-outline-variant/20">
+              <span class="text-outline">Persistent Storage:</span>
+              <span class="text-emerald-400 font-bold">Active (JSON + MySQL)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- 3. SECURITY GATEWAY / ADMIN LOGIN MODAL                                   -->
+  <!-- ========================================================================= -->
+  <div id="admin-login-overlay" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="w-full max-w-md coin-edge-border rounded-2xl bg-surface-container-low border border-primary/50 shadow-2xl p-6 sm:p-8 space-y-6">
+      
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 mx-auto rounded-full bg-surface-container border-2 border-primary/60 flex items-center justify-center text-primary shadow-lg shadow-primary/20">
+          <span class="material-symbols-outlined text-3xl">key</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-primary tracking-wide">CHRONOS Command Deck</h2>
+        <p class="font-mono text-xs text-on-surface-variant">Administrative Clearance & Platform Owner Verification</p>
+      </div>
+
+      <!-- Login Form -->
+      <form id="admin-login-form" class="space-y-4 font-mono text-xs">
+        
+        <!-- Handle Input -->
+        <div class="space-y-1">
+          <label class="text-outline uppercase text-[10px] tracking-wider font-semibold block">Owner / Admin Handle</label>
+          <div class="relative">
+            <input type="text" id="admin-input-handle" placeholder="CHRONOS-ADMIN or Leave Empty for Master Key" class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-high border border-outline-variant/60 focus:border-primary text-on-surface focus:outline-none"/>
+            <span class="material-symbols-outlined text-[18px] text-outline absolute right-3 top-2.5 pointer-events-none">shield_person</span>
+          </div>
+        </div>
+
+        <!-- Passkey Input -->
+        <div class="space-y-1">
+          <label class="text-outline uppercase text-[10px] tracking-wider font-semibold block">Master Clockmaker Passkey</label>
+          <div class="relative">
+            <input type="password" id="admin-input-passkey" placeholder="Enter Owner Master Key or Passkey" required class="w-full px-3.5 py-2.5 rounded-lg bg-surface-container-high border border-outline-variant/60 focus:border-primary text-on-surface focus:outline-none"/>
+            <span class="material-symbols-outlined text-[18px] text-outline absolute right-3 top-2.5 pointer-events-none">lock</span>
+          </div>
+        </div>
+
+        <!-- Error Container -->
+        <div id="admin-login-error" class="hidden p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs text-center font-mono"></div>
+
+        <!-- Submit Button -->
+        <button type="submit" id="btn-submit-admin-login" class="brass-actuator w-full py-3 rounded-lg font-bold text-sm tracking-wide uppercase flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.01] transition-transform cursor-pointer">
+          <span class="material-symbols-outlined text-[18px]">lock_open</span>
+          <span>Unlock Control Deck</span>
+        </button>
+
+        <div class="text-center pt-2">
+          <a href="/game" class="text-outline hover:text-primary transition-colors text-[11px] underline">Return to Game Chamber</a>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="admin-toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 font-mono text-xs px-4 py-2.5 rounded-lg shadow-2xl flex items-center gap-2 border"></div>
+
+  <!-- JavaScript logic -->
+  <script src="/js/admin.js"></script>
+</body>
+</html>

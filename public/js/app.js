@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const authOverlay = document.getElementById('auth-modal-overlay');
   const settingsOverlay = document.getElementById('settings-modal-overlay');
   const victoryOverlay = document.getElementById('victory-modal-overlay');
+  const tutorialOverlay = document.getElementById('tutorial-modal-overlay');
 
   const userProfileBar = document.getElementById('user-profile-bar');
   const usernameDisplay = document.getElementById('player-username');
@@ -30,6 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnLogout = document.getElementById('btn-logout');
   const btnOpenAuth = document.getElementById('btn-open-auth');
   const btnOpenSettings = document.getElementById('btn-open-settings');
+  const hintBox = document.getElementById('hint-box');
 
   // Curated Puzzles Cache & Challenge Duel State
   let currentLevelNumber = 1;
@@ -91,50 +93,55 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   checkDbHealth();
 
-  // 1. Initialize Clock Engine
-  const engine = new ClockEngine({
-    startTime: '02:00',
-    targetTime: '04:30',
-    runningDuration: 75,
-    onTick: (data) => updateUIOnTick(data),
-    onPinActivate: (data) => handlePinActivationVisuals(data),
-    onComplete: (data) => handleGameCompletion(data),
-    onReset: () => handleGameReset()
-  });
-
-  // 2. Initialize Drag & Drop Manager
-  const dragManager = new PinDragDropManager(engine, {
-    onInventoryChange: () => renderPinsAndSockets()
-  });
-
-  // 3. Render Clock Sockets in SVG
-  renderClockSockets();
-  renderPinsAndSockets();
-
-  // 4. Load Puzzles from API (or fallback)
-  await loadPuzzles();
-
-  // 5. Check Active User Session
-  await window.chronosAuth.checkSession();
-  setupAuthListeners();
-
-  // 6. Check if incoming URL has a custom friend challenge duel
-  checkURLChallenge();
-
   // -------------------------------------------------------------
-  // UI Tick Updater
+  // UI Tick Updater with Continuous Direction-Aware Hand Angles
   // -------------------------------------------------------------
+  let currentMinuteRotation = null;
+  let currentHourRotation = null;
+
+  function calculateContinuousAngle(currentRotation, targetAngleMod, direction) {
+    if (currentRotation === null || direction === 'reset') {
+      return targetAngleMod;
+    }
+
+    const currentBase = ((currentRotation % 360) + 360) % 360;
+    const targetBase = ((targetAngleMod % 360) + 360) % 360;
+
+    if (direction === 'rewind') {
+      // Step backwards to target starting angle
+      let diff = currentBase - targetBase;
+      if (diff < 0) diff += 360;
+      return currentRotation - diff;
+    }
+
+    if (direction === 'backward') {
+      // Pin warped backwards: rotate strictly counter-clockwise
+      let diff = currentBase - targetBase;
+      if (diff < 0) diff += 360;
+      return currentRotation - diff;
+    }
+
+    // Default / forward: normal tick or forward pin warp: rotate strictly clockwise
+    let diff = targetBase - currentBase;
+    if (diff < 0) diff += 360;
+    return currentRotation + diff;
+  }
+
   function updateUIOnTick(data) {
-    const { displayedTime, minuteAngle, hourAngle, elapsedDuration, totalDuration, progressPercent, smooth, rewind } = data;
+    const { displayedTime, minuteAngle, hourAngle, elapsedDuration, totalDuration, progressPercent, smooth, rewind, direction = 'forward' } = data;
+
+    // Calculate direction-aware continuous hand rotations to eliminate reverse movement bugs
+    currentMinuteRotation = calculateContinuousAngle(currentMinuteRotation, minuteAngle, direction);
+    currentHourRotation = calculateContinuousAngle(currentHourRotation, hourAngle, direction);
 
     // Apply hand angles (SVG elements rotate around 300px 300px)
     if (minuteHandEl) {
       minuteHandEl.setAttribute('class', `clock-hand ${rewind ? 'rewind-transition' : (smooth ? 'smooth-transition' : '')}`);
-      minuteHandEl.style.transform = `rotate(${minuteAngle}deg)`;
+      minuteHandEl.style.transform = `rotate(${currentMinuteRotation}deg)`;
     }
     if (hourHandEl) {
       hourHandEl.setAttribute('class', `clock-hand ${rewind ? 'rewind-transition' : (smooth ? 'smooth-transition' : '')}`);
-      hourHandEl.style.transform = `rotate(${hourAngle}deg)`;
+      hourHandEl.style.transform = `rotate(${currentHourRotation}deg)`;
     }
 
     // Digital Dial Readout & Time Locked Glow
@@ -169,6 +176,69 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateUIOnTick.lastElapsed = elapsedDuration;
   }
 
+  // 1. Initialize Clock Engine
+  const engine = new ClockEngine({
+    startTime: '02:00',
+    targetTime: '04:30',
+    runningDuration: 75,
+    onTick: (data) => updateUIOnTick(data),
+    onPinActivate: (data) => handlePinActivationVisuals(data),
+    onComplete: (data) => handleGameCompletion(data),
+    onReset: () => handleGameReset()
+  });
+
+  // 2. Initialize Drag & Drop Manager
+  const dragManager = new PinDragDropManager(engine, {
+    onInventoryChange: () => renderPinsAndSockets()
+  });
+
+  // 3. Render Clock Sockets in SVG
+  renderClockSockets();
+  renderPinsAndSockets();
+
+  // 4. Load Puzzles from API (or fallback)
+  await loadPuzzles();
+
+  // 5. Check Active User Session
+  await window.chronosAuth.checkSession();
+  setupAuthListeners();
+
+  // 6. Check if incoming URL has a custom friend challenge duel
+  checkURLChallenge();
+
+  // 7. Real-Time Player Presence Heartbeat Tracker (For Owner Control Deck)
+  let chronosSessionId = sessionStorage.getItem('chronos_session_id');
+  if (!chronosSessionId) {
+    chronosSessionId = 'sess_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
+    sessionStorage.setItem('chronos_session_id', chronosSessionId);
+  }
+
+  function sendPresenceHeartbeat(state = 'idle') {
+    try {
+      const token = localStorage.getItem('chronos_token');
+      const userStr = localStorage.getItem('chronos_user');
+      const user = userStr ? JSON.parse(userStr) : null;
+
+      fetch('/api/game/heartbeat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          sessionId: chronosSessionId,
+          level: currentLevelNumber || 1,
+          state: state,
+          username: user ? user.username : 'Guest Chronomancer'
+        })
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
+  // Initial presence ping and 40s heartbeat loop
+  sendPresenceHeartbeat('idle');
+  setInterval(() => sendPresenceHeartbeat(engine && engine.state === 'RUNNING' ? 'running' : 'idle'), 40000);
+
   // -------------------------------------------------------------
   // Pin Activation Visuals (Mechanical Pause & Glow)
   // -------------------------------------------------------------
@@ -190,8 +260,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           else if (pin.label === '+1/6') triggerMsg = '+1/6 (Minute Hand +10m [60/6])';
         }
         showFloatingNotification(`⚡ Pin Engaged: ${triggerMsg}`, pin.bgHex);
-      } else if (phase === 'POST_RESUME') {
+      } else if (phase === 'APPLYING' || phase === 'POST_RESUME') {
         socketEl.classList.remove('pin-activating');
+        socketEl.classList.add('pin-triggered');
       }
     }
   }
@@ -265,10 +336,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function handleGameReset() {
+    document.querySelectorAll('.socket-hole.pin-triggered').forEach(el => {
+      el.classList.remove('pin-triggered');
+    });
     dragManager.returnAllPinsToInventory();
     renderPinsAndSockets();
     btnStart.disabled = false;
     btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+    if (hintBox) hintBox.classList.add('hidden');
   }
 
   // -------------------------------------------------------------
@@ -365,16 +440,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pin = engine.sockets[circle][i];
         if (pin) {
           socketEl.classList.add('has-pin');
-          socketEl.style.backgroundColor = pin.bgHex;
-          socketEl.style.borderColor = pin.borderHex;
-          socketEl.style.boxShadow = `0 0 12px ${pin.bgHex}, inset 0 1px 0 rgba(255,255,255,0.4)`;
+          if (pin.hasTriggered) {
+            socketEl.classList.add('pin-triggered');
+          } else {
+            socketEl.classList.remove('pin-triggered');
+            socketEl.style.backgroundColor = pin.bgHex;
+            socketEl.style.borderColor = pin.borderHex;
+            socketEl.style.boxShadow = `0 0 12px ${pin.bgHex}, inset 0 1px 0 rgba(255,255,255,0.4)`;
+          }
           socketEl.innerHTML = '';
           const effectDesc = circle === 'outer'
             ? `${pin.label === '+1/3' ? '+20m' : (pin.label === '-1/4' ? '-15m' : '+10m')} on minute sweep`
             : `${pin.label === '+1/3' ? '+4h (12/3)' : (pin.label === '-1/4' ? '-3h (12/4)' : '+2h (12/6)')} on hour sweep`;
           socketEl.title = `Slotted: ${pin.label} (${circle === 'outer' ? (i * 5) + 'm' : (i + 1) + 'h'} socket ➔ ${effectDesc}) — Click to remove`;
         } else {
-          socketEl.classList.remove('has-pin');
+          socketEl.classList.remove('has-pin', 'pin-triggered');
           socketEl.style.backgroundColor = '';
           socketEl.style.borderColor = '';
           socketEl.style.boxShadow = '';
@@ -394,6 +474,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // -------------------------------------------------------------
   btnStart.addEventListener('click', () => {
     if (engine.state === 'IDLE') {
+      if (hintBox) hintBox.classList.add('hidden');
+      sendPresenceHeartbeat('running');
       engine.start();
       btnStart.disabled = true;
       btnStart.classList.add('opacity-50', 'cursor-not-allowed');
@@ -402,6 +484,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   btnReset.addEventListener('click', () => {
+    sendPresenceHeartbeat('idle');
+    document.querySelectorAll('.socket-hole.pin-triggered').forEach(el => {
+      el.classList.remove('pin-triggered');
+    });
+    if (hintBox) hintBox.classList.add('hidden');
     const puzzle = puzzlesList.find(p => p.level_number === currentLevelNumber);
     if (puzzle) {
       engine.resetLevel(puzzle.start_time, puzzle.target_time, puzzle.running_duration_minutes);
@@ -560,6 +647,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       hintText.innerHTML = `<strong>Hint for Epoch ${lvlNum}:</strong> ${hintObj ? hintObj.hint : 'Arrange your fraction pins along the sweeps to bridge the time offset!'}`;
     }
 
+    // Ensure hint box is hidden when transitioning or loading epochs
+    if (hintBox) {
+      hintBox.classList.add('hidden');
+    }
+    document.querySelectorAll('.socket-hole.pin-triggered').forEach(el => {
+      el.classList.remove('pin-triggered');
+    });
+
     renderLevelList();
     dragManager.returnAllPinsToInventory();
     renderPinsAndSockets();
@@ -572,6 +667,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (feedbackStatusMsg) feedbackStatusMsg.classList.add('hidden');
     const feedbackInput = document.getElementById('feedback-input-text');
     if (feedbackInput) feedbackInput.value = '';
+
+    // Compulsory Level 1 Tutorial Window Check
+    if (lvlNum === 1 && !sessionStorage.getItem('chronos_level1_tutorial_seen')) {
+      openTutorialModal();
+    }
   }
 
   // Next Level from Victory Modal
@@ -771,6 +871,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const walkthroughBanner = document.getElementById('walkthrough-banner');
     if (walkthroughBanner) walkthroughBanner.classList.add('hidden');
 
+    // Ensure hint box is hidden when transitioning or loading epochs
+    if (hintBox) {
+      hintBox.classList.add('hidden');
+    }
+    document.querySelectorAll('.socket-hole.pin-triggered').forEach(el => {
+      el.classList.remove('pin-triggered');
+    });
+
     renderLevelList();
     dragManager.returnAllPinsToInventory();
     renderPinsAndSockets();
@@ -959,14 +1067,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // -------------------------------------------------------------
   // Tutorial, Hints & Interactive Walkthrough Engine
   // -------------------------------------------------------------
-  const tutorialOverlay = document.getElementById('tutorial-modal-overlay');
   const btnOpenTutorial = document.getElementById('btn-open-tutorial');
   const btnSectionTutorial = document.getElementById('btn-section-tutorial');
   const btnCloseTutorial = document.getElementById('btn-close-tutorial');
   const btnGotIt = document.getElementById('btn-got-it');
 
   const btnToggleHint = document.getElementById('btn-toggle-hint');
-  const hintBox = document.getElementById('hint-box');
 
   const walkthroughBanner = document.getElementById('walkthrough-banner');
   const walkthroughTitle = document.getElementById('walkthrough-step-title');
@@ -976,19 +1082,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let walkthroughStep = 0;
 
-  // Toggle Hint Box
+  // Toggle & Close Hint Box
   if (btnToggleHint && hintBox) {
     btnToggleHint.addEventListener('click', () => {
       hintBox.classList.toggle('hidden');
     });
   }
 
-  // Tutorial Modal Open / Close
+  const btnCloseHint = document.getElementById('btn-close-hint');
+  if (btnCloseHint && hintBox) {
+    btnCloseHint.addEventListener('click', () => {
+      hintBox.classList.add('hidden');
+    });
+  }
+
+  // Tutorial Modal Open / Close (Compulsory on Level 1)
   function openTutorialModal() {
     if (tutorialOverlay) tutorialOverlay.classList.remove('hidden');
   }
 
   function closeTutorialModal() {
+    sessionStorage.setItem('chronos_level1_tutorial_seen', 'true');
     if (tutorialOverlay) tutorialOverlay.classList.add('hidden');
   }
 
@@ -999,6 +1113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Interactive Guided Walkthrough Controller
   function startInteractiveWalkthrough() {
+    sessionStorage.setItem('chronos_level1_tutorial_seen', 'true');
     closeTutorialModal();
     selectLevel(1);
     walkthroughStep = 1;
@@ -1074,7 +1189,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   window.onPinSlottedHook = function(circle, index, pin) {
-    if (walkthroughStep === 3 && circle === 'inner' && index === 1) {
+    if (walkthroughStep === 3 && circle === 'outer' && index === 3) {
       walkthroughStep = 4;
       renderWalkthroughStep();
     }

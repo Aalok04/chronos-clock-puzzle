@@ -8,6 +8,9 @@ let pool = null;
 let isConnected = false;
 let dbMode = 'uninitialized';
 
+// Path to persistent disk storage for player reviews/feedback
+const feedbackFilePath = path.join(__dirname, '..', 'data', 'player_feedback.json');
+
 // In-memory fallback repository for graceful offline execution if MySQL is not reachable
 const memoryStore = {
   users: [],
@@ -24,19 +27,21 @@ const memoryStore = {
     { id: 9, level_number: 9, title: 'Epoch IX: Celestial Escapement', start_time: '08:45', target_time: '11:50', running_duration_minutes: 75, description: 'Bridge the 1 hour 50 minute gap between 10:00 (natural run end) and 11:50 by harmonizing both hour-ring advances and minute warps.', difficulty: 'Grandmaster' },
     { id: 10, level_number: 10, title: 'Epoch X: Grand Chronomancer Trial', start_time: '01:00', target_time: '04:50', running_duration_minutes: 75, description: 'The master challenge. Natural run reaches 02:15. Coordinate concentric hour advances and fraction cascades to reach 04:50 before duration expires.', difficulty: 'Chronos Supreme' }
   ],
-  game_attempts: []
+  game_attempts: [],
+  player_feedback: []
 };
 
-// Seed demo account in memoryStore
+// Seed demo account & admin account in memoryStore
 (async () => {
-  const hash = await bcrypt.hash('Escapement99', 10);
+  // 1. Seed Student Scholar Account
+  const studentHash = await bcrypt.hash('Escapement99', 10);
   memoryStore.users.push({
     id: 1,
     username: 'CHRONO-2024',
     email: 'scholar@chronos.institute',
-    password_hash: hash,
+    password_hash: studentHash,
     role: 'student',
-    created_at: new Date()
+    created_at: new Date(Date.now() - 86400000 * 3) // 3 days ago
   });
   memoryStore.user_profiles.push({
     user_id: 1,
@@ -45,6 +50,32 @@ const memoryStore = {
     current_level: 3,
     updated_at: new Date()
   });
+
+  // 2. Seed Admin / Platform Owner Account
+  const adminHash = await bcrypt.hash('MasterClockmaker2024', 10);
+  memoryStore.users.push({
+    id: 2,
+    username: 'CHRONOS-ADMIN',
+    email: 'owner@chronos.institute',
+    password_hash: adminHash,
+    role: 'admin',
+    created_at: new Date(Date.now() - 86400000 * 7) // 7 days ago
+  });
+  memoryStore.user_profiles.push({
+    user_id: 2,
+    rank_title: 'Grand Architect of Time',
+    puzzles_solved: 10,
+    current_level: 10,
+    updated_at: new Date()
+  });
+
+  // Load any initial feedback from JSON file
+  try {
+    if (fs.existsSync(feedbackFilePath)) {
+      const data = JSON.parse(fs.readFileSync(feedbackFilePath, 'utf8') || '[]');
+      memoryStore.player_feedback = data;
+    }
+  } catch (e) {}
 })();
 
 async function initDB() {
@@ -126,9 +157,9 @@ async function runMigrations() {
         }
         console.log('[Database] Migrations applied: Tables and seed levels are ready in MySQL.');
 
-        // Seed demo account if not exists
-        const [existing] = await conn.query('SELECT id FROM users WHERE username = ?', ['CHRONO-2024']);
-        if (existing.length === 0) {
+        // Seed demo student account if not exists
+        const [existingStudent] = await conn.query('SELECT id FROM users WHERE username = ?', ['CHRONO-2024']);
+        if (existingStudent.length === 0) {
           const hash = await bcrypt.hash('Escapement99', 10);
           const [res] = await conn.query(
             'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
@@ -139,6 +170,21 @@ async function runMigrations() {
             [res.insertId, 'Level 3 Chronomancer', 2, 3]
           );
           console.log('[Database] Default evaluation account seeded: ID: CHRONO-2024 / Pass: Escapement99');
+        }
+
+        // Seed default admin owner account if not exists
+        const [existingAdmin] = await conn.query('SELECT id FROM users WHERE username = ? OR role = ?', ['CHRONOS-ADMIN', 'admin']);
+        if (existingAdmin.length === 0) {
+          const adminHash = await bcrypt.hash('MasterClockmaker2024', 10);
+          const [admRes] = await conn.query(
+            'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
+            ['CHRONOS-ADMIN', 'owner@chronos.institute', adminHash, 'admin']
+          );
+          await conn.query(
+            'INSERT INTO user_profiles (user_id, rank_title, puzzles_solved, current_level) VALUES (?, ?, ?, ?)',
+            [admRes.insertId, 'Grand Architect of Time', 10, 10]
+          );
+          console.log('[Database] Default admin owner account seeded: ID: CHRONOS-ADMIN / Pass: MasterClockmaker2024');
         }
       } finally {
         conn.release();
@@ -170,18 +216,48 @@ function executeMemoryQuery(sql, params) {
   const cleanSql = sql.trim();
   const lower = cleanSql.toLowerCase();
 
+  // SELECT COUNT(*) from users
+  if (lower.includes('count(*)') && lower.includes('from users')) {
+    return [{ total_users: memoryStore.users.length, count: memoryStore.users.length }];
+  }
+
+  // SELECT joined users and user_profiles (User Roster)
+  if (lower.includes('from users') && (lower.includes('join user_profiles') || lower.includes('order by'))) {
+    return memoryStore.users.map(u => {
+      const profile = memoryStore.user_profiles.find(p => p.user_id === u.id) || {
+        rank_title: 'Apprentice Chronomancer',
+        puzzles_solved: 0,
+        current_level: 1
+      };
+      return {
+        id: u.id,
+        username: u.username,
+        email: u.email,
+        role: u.role,
+        created_at: u.created_at,
+        rank_title: profile.rank_title,
+        puzzles_solved: profile.puzzles_solved,
+        current_level: profile.current_level
+      };
+    });
+  }
+
   // SELECT users by username or email
   if (lower.startsWith('select') && lower.includes('from users')) {
     if (lower.includes('where username = ? or email = ?')) {
-      const u = memoryStore.users.find(x => x.username === params[0] || x.email === params[1]);
+      const u = memoryStore.users.find(x => x.username.toLowerCase() === (params[0] || '').toLowerCase() || x.email.toLowerCase() === (params[1] || '').toLowerCase());
+      return u ? [u] : [];
+    }
+    if (lower.includes('where username = ? or role = ?')) {
+      const u = memoryStore.users.find(x => x.username === params[0] || x.role === params[1]);
       return u ? [u] : [];
     }
     if (lower.includes('where username = ?')) {
-      const u = memoryStore.users.find(x => x.username === params[0]);
+      const u = memoryStore.users.find(x => x.username.toLowerCase() === (params[0] || '').toLowerCase());
       return u ? [u] : [];
     }
     if (lower.includes('where email = ?')) {
-      const u = memoryStore.users.find(x => x.email === params[0]);
+      const u = memoryStore.users.find(x => x.email.toLowerCase() === (params[0] || '').toLowerCase());
       return u ? [u] : [];
     }
     if (lower.includes('where id = ?')) {
@@ -211,6 +287,24 @@ function executeMemoryQuery(sql, params) {
       return p ? [p] : [];
     }
     return memoryStore.puzzles;
+  }
+
+  // SELECT game_attempts aggregate (Total attempts & success count)
+  if (lower.includes('count(*)') && lower.includes('from game_attempts')) {
+    const total = memoryStore.game_attempts.length;
+    const successful = memoryStore.game_attempts.filter(a => a.is_success).length;
+    return [{
+      total_attempts: total,
+      successful_attempts: successful
+    }];
+  }
+
+  // SELECT player_feedback
+  if (lower.startsWith('select') && lower.includes('from player_feedback')) {
+    let result = [...memoryStore.player_feedback];
+    // Sort descending by created_at
+    result.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    return result;
   }
 
   // INSERT INTO users
@@ -257,6 +351,18 @@ function executeMemoryQuery(sql, params) {
     return { affectedRows: 0 };
   }
 
+  // UPDATE users SET role = ?
+  if (lower.startsWith('update users set role = ?')) {
+    const role = params[0];
+    const userId = params[1];
+    const user = memoryStore.users.find(u => u.id === userId);
+    if (user) {
+      user.role = role;
+      return { affectedRows: 1 };
+    }
+    return { affectedRows: 0 };
+  }
+
   // INSERT INTO game_attempts
   if (lower.startsWith('insert into game_attempts')) {
     const newId = memoryStore.game_attempts.length + 1;
@@ -270,6 +376,31 @@ function executeMemoryQuery(sql, params) {
       attempted_at: new Date()
     });
     return { insertId: newId, affectedRows: 1 };
+  }
+
+  // INSERT INTO player_feedback
+  if (lower.startsWith('insert into player_feedback')) {
+    const newId = Date.now();
+    const entry = {
+      id: newId,
+      user_id: params[0],
+      username: params[1],
+      level_number: params[2],
+      rating: params[3],
+      sentiment: params[4],
+      comment: params[5],
+      created_at: new Date()
+    };
+    memoryStore.player_feedback.unshift(entry);
+    return { insertId: newId, affectedRows: 1 };
+  }
+
+  // DELETE FROM player_feedback
+  if (lower.startsWith('delete from player_feedback')) {
+    const id = params[0];
+    const initialLen = memoryStore.player_feedback.length;
+    memoryStore.player_feedback = memoryStore.player_feedback.filter(f => f.id !== id && f.id !== parseInt(id, 10));
+    return { affectedRows: initialLen - memoryStore.player_feedback.length };
   }
 
   // Fallback empty

@@ -35,6 +35,37 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let currentAuthMode = 'signin';
 
+  // Player Presence Tracking (Landing Page)
+  let chronosSessionId = sessionStorage.getItem('chronos_session_id');
+  if (!chronosSessionId) {
+    chronosSessionId = 'sess_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
+    sessionStorage.setItem('chronos_session_id', chronosSessionId);
+  }
+
+  function pingLandingPresence() {
+    try {
+      const token = localStorage.getItem('chronos_token');
+      const userStr = localStorage.getItem('chronos_user');
+      const user = userStr ? JSON.parse(userStr) : null;
+
+      fetch('/api/game/heartbeat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          sessionId: chronosSessionId,
+          level: 0,
+          state: 'exploring',
+          username: user ? user.username : 'Guest Explorer'
+        })
+      }).catch(() => {});
+    } catch (e) {}
+  }
+  pingLandingPresence();
+  setInterval(pingLandingPresence, 45000);
+
   // Check current session
   async function checkInitialAuth() {
     if (window.chronosAuth) {
