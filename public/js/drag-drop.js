@@ -32,8 +32,29 @@ class PinDragDropManager {
     this.activeDrag = null;     // { pin, sourceEl, ghost, sourceCircle, sourceIndex, startX, startY }
     this.nearestSocket = null;
     this.selectedPinId = null;  // For Tap-to-Place mode
+    this.maxPins = null;        // Maximum allowed placed pins for current level (null = unlimited)
 
     this.initEvents();
+  }
+
+  // Set the pin limit for current level
+  setMaxPins(limit) {
+    this.maxPins = (typeof limit === 'number' && limit > 0) ? limit : null;
+    this.onInventoryChange();
+  }
+
+  // Count total pins currently positioned in sockets
+  getPlacedPinsCount() {
+    let count = 0;
+    if (this.engine && this.engine.sockets) {
+      if (Array.isArray(this.engine.sockets.outer)) {
+        count += this.engine.sockets.outer.filter(Boolean).length;
+      }
+      if (Array.isArray(this.engine.sockets.inner)) {
+        count += this.engine.sockets.inner.filter(Boolean).length;
+      }
+    }
+    return count;
   }
 
   initEvents() {
@@ -103,6 +124,16 @@ class PinDragDropManager {
 
     // Check if target socket has another pin
     const existing = this.engine.sockets[circle][index];
+
+    // Enforce pin budget if placing into an empty socket
+    if (!existing && this.maxPins !== null && this.getPlacedPinsCount() >= this.maxPins) {
+      if (typeof window.showFloatingNotification === 'function') {
+        window.showFloatingNotification(`⚠️ Pin Limit Reached! Max ${this.maxPins} pins allowed for this Epoch.`, '#ef4444');
+      }
+      if (window.chronosAudio) window.chronosAudio.playTick();
+      return;
+    }
+
     if (existing) {
       this.returnPinToInventory(existing.id);
     }
@@ -246,12 +277,27 @@ class PinDragDropManager {
 
     if (this.nearestSocket) {
       const { circle, index } = this.nearestSocket;
+      const isMovingExistingOnClock = (sourceCircle !== null && sourceIndex !== null);
+      const existing = this.engine.sockets[circle][index];
+
+      // Enforce pin budget if dragging from inventory into an empty socket
+      if (!isMovingExistingOnClock && !existing && this.maxPins !== null && this.getPlacedPinsCount() >= this.maxPins) {
+        if (typeof window.showFloatingNotification === 'function') {
+          window.showFloatingNotification(`⚠️ Pin Limit Reached! Max ${this.maxPins} pins allowed for this Epoch.`, '#ef4444');
+        }
+        if (window.chronosAudio) window.chronosAudio.playTick();
+        this.activeDrag = null;
+        this.nearestSocket = null;
+        this.selectedPinId = null;
+        this.updateSelectedVisuals();
+        this.onInventoryChange();
+        return;
+      }
 
       if (sourceCircle !== null && sourceIndex !== null) {
         this.engine.removePin(sourceCircle, sourceIndex);
       }
 
-      const existing = this.engine.sockets[circle][index];
       if (existing && existing.id !== pin.id) {
         this.returnPinToInventory(existing.id);
       }

@@ -16,67 +16,33 @@ const memoryStore = {
   users: [],
   user_profiles: [],
   puzzles: [
-    { id: 1, level_number: 1, title: 'Epoch I: The First Escapement', start_time: '01:00', target_time: '02:35', running_duration_minutes: 75, description: 'Natural passage reaches 02:15. You need an extra 20 minutes to reach 02:35.', difficulty: 'Novice' },
-    { id: 2, level_number: 2, title: 'Epoch II: Equilibrium of Gears', start_time: '12:00', target_time: '01:20', running_duration_minutes: 75, description: 'Natural passage reaches 01:15. A delicate balance (+20m and -15m) bridges the 5-minute offset to 01:20.', difficulty: 'Adept' },
-    { id: 3, level_number: 3, title: 'Epoch III: The Brass Pendulum', start_time: '02:00', target_time: '04:30', running_duration_minutes: 75, description: 'Natural run leads to 03:15. Coordinate multiple time warps to land precisely at 04:30.', difficulty: 'Master' },
-    { id: 4, level_number: 4, title: 'Epoch IV: The Temporal Paradox', start_time: '06:00', target_time: '08:00', running_duration_minutes: 75, description: 'Coordinate the Inner (Hour) and Outer (Minute) rings in sequence. Timing is everything.', difficulty: 'Grandmaster' },
-    { id: 5, level_number: 5, title: 'Epoch V: The Omnipresent Dial', start_time: '10:15', target_time: '12:00', running_duration_minutes: 75, description: 'A master trial requiring strategic placement to prevent reverse loops and hit the 12:00 apex.', difficulty: 'Chronos Supreme' },
-    { id: 6, level_number: 6, title: 'Epoch VI: Gear-Train Resonance', start_time: '03:35', target_time: '05:15', running_duration_minutes: 75, description: 'Natural passage from 03:35 reaches 04:50. Advance the minute hand +25 minutes using fraction warps to synchronize with 05:15.', difficulty: 'Adept' },
-    { id: 7, level_number: 7, title: 'Epoch VII: Chrono Dilation', start_time: '07:10', target_time: '08:15', running_duration_minutes: 75, description: 'Natural run overshoots to 08:25! Slot negative fraction pins (-1/4 hr = -15m) to decelerate the dial back to 08:15.', difficulty: 'Expert' },
-    { id: 8, level_number: 8, title: 'Epoch VIII: The Dual-Arbor Leap', start_time: '02:20', target_time: '04:30', running_duration_minutes: 75, description: 'Natural run reaches 03:35. Harness the Inner Hour Ring to trigger an hour leap at Hour 3, then fine-tune minute pins to strike 04:30.', difficulty: 'Master' },
-    { id: 9, level_number: 9, title: 'Epoch IX: Celestial Escapement', start_time: '08:45', target_time: '11:50', running_duration_minutes: 75, description: 'Bridge the 1 hour 50 minute gap between 10:00 (natural run end) and 11:50 by harmonizing both hour-ring advances and minute warps.', difficulty: 'Grandmaster' },
-    { id: 10, level_number: 10, title: 'Epoch X: Grand Chronomancer Trial', start_time: '01:00', target_time: '04:50', running_duration_minutes: 75, description: 'The master challenge. Natural run reaches 02:15. Coordinate concentric hour advances and fraction cascades to reach 04:50 before duration expires.', difficulty: 'Chronos Supreme' }
+    { id: 1, level_number: 1, title: 'Epoch I: The First Escapement', start_time: '01:00', target_time: '02:35', running_duration_minutes: 75, max_pins: null, description: 'Natural passage reaches 02:15. You need an extra 20 minutes to reach 02:35.', difficulty: 'Novice' },
+    { id: 2, level_number: 2, title: 'Epoch II: Equilibrium of Gears', start_time: '12:00', target_time: '01:20', running_duration_minutes: 75, max_pins: null, description: 'Natural passage reaches 01:15. A delicate balance (+20m and -15m) bridges the 5-minute offset to 01:20.', difficulty: 'Novice' },
+    { id: 3, level_number: 3, title: 'Epoch III: The Temporal Paradox', start_time: '06:00', target_time: '08:00', running_duration_minutes: 75, max_pins: null, description: 'Coordinate concentric rings to bridge a 45-minute offset from 07:15 natural run end to 08:00.', difficulty: 'Apprentice' },
+    { id: 4, level_number: 4, title: 'Epoch IV: Synchronized Arbors', start_time: '07:00', target_time: '08:15', running_duration_minutes: 75, max_pins: null, description: 'Natural 75m passage synchronizes directly with 08:15. Maintain balance across sweeps.', difficulty: 'Apprentice' },
+    { id: 5, level_number: 5, title: 'Epoch V: Gear-Train Resonance', start_time: '03:35', target_time: '05:15', running_duration_minutes: 75, max_pins: null, description: 'Natural passage reaches 04:50. Advance the minute hand +25 minutes to strike 05:15.', difficulty: 'Adept' },
+    { id: 6, level_number: 6, title: 'Epoch VI: Chrono Dilation', start_time: '07:10', target_time: '08:15', running_duration_minutes: 75, max_pins: null, description: 'Natural passage overshoots to 08:25! Slot negative fraction warps to decelerate the dial back to 08:15.', difficulty: 'Adept' },
+    { id: 7, level_number: 7, title: 'Epoch VII: The Omnipresent Dial', start_time: '10:15', target_time: '12:00', running_duration_minutes: 75, max_pins: 3, description: 'Natural passage reaches 11:30. Bridge the 30-minute gap to 12:00 using no more than 3 fraction pins.', difficulty: 'Expert' },
+    { id: 8, level_number: 8, title: 'Epoch VIII: The Brass Pendulum', start_time: '02:00', target_time: '04:30', running_duration_minutes: 75, max_pins: 4, description: 'Natural run reaches 03:15. Harness hour step advances and minute sweeps with a strict 4-pin budget.', difficulty: 'Expert' },
+    { id: 9, level_number: 9, title: 'Epoch IX: Dual Escapement Cadence', start_time: '01:30', target_time: '03:15', running_duration_minutes: 75, max_pins: 2, description: 'Natural run reaches 02:45. Advance +30 minutes to reach 03:15 using at most 2 pins!', difficulty: 'Master' },
+    { id: 10, level_number: 10, title: 'Epoch X: The Dual-Arbor Leap', start_time: '02:20', target_time: '04:30', running_duration_minutes: 75, max_pins: 5, description: 'Natural run reaches 03:35. Coordinate inner and outer triggers to bridge a 55-minute gap with max 5 pins.', difficulty: 'Master' },
+    { id: 11, level_number: 11, title: 'Epoch XI: Harmonic Oscillations', start_time: '04:45', target_time: '06:45', running_duration_minutes: 75, max_pins: 4, description: 'Natural run reaches 06:00. Advance 45 minutes to synchronize with 06:45 using 4 pins max.', difficulty: 'Grandmaster' },
+    { id: 12, level_number: 12, title: 'Epoch XII: The Monolithic Leap', start_time: '06:25', target_time: '08:00', running_duration_minutes: 75, max_pins: 1, description: 'Natural run reaches 07:40. You need exactly +20m to reach 08:00 — achieve this with ONLY 1 pin!', difficulty: 'Grandmaster' },
+    { id: 13, level_number: 13, title: 'Epoch XIII: Chrono Convergence', start_time: '02:00', target_time: '04:10', running_duration_minutes: 75, max_pins: 5, description: 'Natural run reaches 03:15. Complex 55-minute coordination under a 5-pin budget.', difficulty: 'Chronos Supreme' },
+    { id: 14, level_number: 14, title: 'Epoch XIV: Concentric Resonance', start_time: '05:20', target_time: '07:00', running_duration_minutes: 75, max_pins: 3, description: 'Natural run reaches 06:35. Bridge the 25-minute offset to 07:00 with at most 3 pins.', difficulty: 'Chronos Supreme' },
+    { id: 15, level_number: 15, title: 'Epoch XV: Grand Chronomancer Apex', start_time: '03:25', target_time: '05:05', running_duration_minutes: 75, max_pins: 4, description: 'The pinnacle trial. Natural run reaches 04:40. Reach 05:05 within a strict 4-pin constraint!', difficulty: 'Chronos Supreme' }
   ],
   game_attempts: [],
   player_feedback: []
 };
 
-// Seed demo account & admin account in memoryStore
-(async () => {
-  // 1. Seed Student Scholar Account
-  const studentHash = await bcrypt.hash('Escapement99', 10);
-  memoryStore.users.push({
-    id: 1,
-    username: 'CHRONO-2024',
-    email: 'scholar@chronos.institute',
-    password_hash: studentHash,
-    role: 'student',
-    created_at: new Date(Date.now() - 86400000 * 3) // 3 days ago
-  });
-  memoryStore.user_profiles.push({
-    user_id: 1,
-    rank_title: 'Level 3 Chronomancer',
-    puzzles_solved: 2,
-    current_level: 3,
-    updated_at: new Date()
-  });
-
-  // 2. Seed Admin / Platform Owner Account
-  const adminHash = await bcrypt.hash('MasterClockmaker2024', 10);
-  memoryStore.users.push({
-    id: 2,
-    username: 'CHRONOS-ADMIN',
-    email: 'owner@chronos.institute',
-    password_hash: adminHash,
-    role: 'admin',
-    created_at: new Date(Date.now() - 86400000 * 7) // 7 days ago
-  });
-  memoryStore.user_profiles.push({
-    user_id: 2,
-    rank_title: 'Grand Architect of Time',
-    puzzles_solved: 10,
-    current_level: 10,
-    updated_at: new Date()
-  });
-
-  // Load any initial feedback from JSON file
-  try {
-    if (fs.existsSync(feedbackFilePath)) {
-      const data = JSON.parse(fs.readFileSync(feedbackFilePath, 'utf8') || '[]');
-      memoryStore.player_feedback = data;
-    }
-  } catch (e) {}
-})();
+// Load persistent feedback from disk into memoryStore
+try {
+  if (fs.existsSync(feedbackFilePath)) {
+    const data = JSON.parse(fs.readFileSync(feedbackFilePath, 'utf8') || '[]');
+    memoryStore.player_feedback = Array.isArray(data) ? data : [];
+  }
+} catch (e) {}
 
 async function initDB() {
   const host = process.env.DB_HOST || '127.0.0.1';
@@ -156,36 +122,6 @@ async function runMigrations() {
           await conn.query(statement);
         }
         console.log('[Database] Migrations applied: Tables and seed levels are ready in MySQL.');
-
-        // Seed demo student account if not exists
-        const [existingStudent] = await conn.query('SELECT id FROM users WHERE username = ?', ['CHRONO-2024']);
-        if (existingStudent.length === 0) {
-          const hash = await bcrypt.hash('Escapement99', 10);
-          const [res] = await conn.query(
-            'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
-            ['CHRONO-2024', 'scholar@chronos.institute', hash, 'student']
-          );
-          await conn.query(
-            'INSERT INTO user_profiles (user_id, rank_title, puzzles_solved, current_level) VALUES (?, ?, ?, ?)',
-            [res.insertId, 'Level 3 Chronomancer', 2, 3]
-          );
-          console.log('[Database] Default evaluation account seeded: ID: CHRONO-2024 / Pass: Escapement99');
-        }
-
-        // Seed default admin owner account if not exists
-        const [existingAdmin] = await conn.query('SELECT id FROM users WHERE username = ? OR role = ?', ['CHRONOS-ADMIN', 'admin']);
-        if (existingAdmin.length === 0) {
-          const adminHash = await bcrypt.hash('MasterClockmaker2024', 10);
-          const [admRes] = await conn.query(
-            'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
-            ['CHRONOS-ADMIN', 'owner@chronos.institute', adminHash, 'admin']
-          );
-          await conn.query(
-            'INSERT INTO user_profiles (user_id, rank_title, puzzles_solved, current_level) VALUES (?, ?, ?, ?)',
-            [admRes.insertId, 'Grand Architect of Time', 10, 10]
-          );
-          console.log('[Database] Default admin owner account seeded: ID: CHRONOS-ADMIN / Pass: MasterClockmaker2024');
-        }
       } finally {
         conn.release();
       }

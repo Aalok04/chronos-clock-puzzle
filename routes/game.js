@@ -33,7 +33,7 @@ function calculateRank(puzzlesSolved) {
 router.get('/puzzles', async (req, res) => {
   try {
     const puzzles = await db.query(
-      'SELECT id, level_number, title, start_time, target_time, running_duration_minutes, description, difficulty FROM puzzles ORDER BY level_number ASC'
+      'SELECT id, level_number, title, start_time, target_time, running_duration_minutes, description, difficulty, max_pins FROM puzzles ORDER BY level_number ASC'
     );
     return res.json({ success: true, puzzles });
   } catch (err) {

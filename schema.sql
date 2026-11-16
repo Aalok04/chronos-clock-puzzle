@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS puzzles (
     start_time VARCHAR(10) NOT NULL,
     target_time VARCHAR(10) NOT NULL,
     running_duration_minutes INT NOT NULL DEFAULT 75,
+    max_pins INT NULL DEFAULT NULL,
     description TEXT,
     difficulty VARCHAR(20) DEFAULT 'Medium'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -54,17 +55,29 @@ CREATE TABLE IF NOT EXISTS player_feedback (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Seed Default Curated Levels
-INSERT INTO puzzles (level_number, title, start_time, target_time, running_duration_minutes, description, difficulty)
+-- 15 Curated Horological Epochs with Progressive Pin Constraints
+INSERT INTO puzzles (level_number, title, start_time, target_time, running_duration_minutes, max_pins, description, difficulty)
 VALUES
-(1, 'Epoch I: The First Escapement', '01:00', '02:35', 75, 'A simple introduction. The clock runs naturally from 01:00 for 75m to 02:15. You need an extra 20 minutes to reach 02:35.', 'Novice'),
-(2, 'Epoch II: Equilibrium of Gears', '12:00', '01:20', 75, 'Natural passage reaches 01:15. A delicate balance is needed (+20m and -15m) to bridge the 5-minute offset to 01:20.', 'Adept'),
-(3, 'Epoch III: The Brass Pendulum', '02:00', '04:30', 75, 'Natural run leads to 03:15. You must coordinate multiple time warps to land precisely at 04:30.', 'Master'),
-(4, 'Epoch IV: The Temporal Paradox', '06:00', '08:00', 75, 'Coordinate the Inner (Hour) and Outer (Minute) rings in sequence. Timing is everything.', 'Grandmaster'),
-(5, 'Epoch V: The Omnipresent Dial', '10:15', '12:00', 75, 'A master trial requiring strategic placement to prevent reverse loops and hit the 12:00 apex.', 'Chronos Supreme'),
-(6, 'Epoch VI: Gear-Train Resonance', '03:35', '05:15', 75, 'Natural passage from 03:35 reaches 04:50. Advance the minute hand +25 minutes using fraction warps to synchronize with 05:15.', 'Adept'),
-(7, 'Epoch VII: Chrono Dilation', '07:10', '08:15', 75, 'Natural run overshoots to 08:25! Slot negative fraction pins (-1/4 hr = -15m) to decelerate the dial back to 08:15.', 'Expert'),
-(8, 'Epoch VIII: The Dual-Arbor Leap', '02:20', '04:30', 75, 'Natural run reaches 03:35. Harness the Inner Hour Ring to trigger an hour leap at Hour 3, then fine-tune minute pins to strike 04:30.', 'Master'),
-(9, 'Epoch IX: Celestial Escapement', '08:45', '11:50', 75, 'Bridge the 1 hour 50 minute gap between 10:00 (natural run end) and 11:50 by harmonizing both hour-ring advances and minute warps.', 'Grandmaster'),
-(10, 'Epoch X: Grand Chronomancer Trial', '01:00', '04:50', 75, 'The master challenge. Natural run reaches 02:15. Coordinate concentric hour advances and fraction cascades to reach 04:50 before duration expires.', 'Chronos Supreme')
-ON DUPLICATE KEY UPDATE title=VALUES(title), start_time=VALUES(start_time), target_time=VALUES(target_time), running_duration_minutes=VALUES(running_duration_minutes), description=VALUES(description), difficulty=VALUES(difficulty);
+(1, 'Epoch I: The First Escapement', '01:00', '02:35', 75, NULL, 'Natural passage reaches 02:15. You need an extra 20 minutes to reach 02:35.', 'Novice'),
+(2, 'Epoch II: Equilibrium of Gears', '12:00', '01:20', 75, NULL, 'Natural passage reaches 01:15. A delicate balance (+20m and -15m) bridges the 5-minute offset to 01:20.', 'Novice'),
+(3, 'Epoch III: The Temporal Paradox', '06:00', '08:00', 75, NULL, 'Coordinate concentric rings to bridge a 45-minute offset from 07:15 natural run end to 08:00.', 'Apprentice'),
+(4, 'Epoch IV: Synchronized Arbors', '07:00', '08:15', 75, NULL, 'Natural 75m passage synchronizes directly with 08:15. Maintain balance across sweeps.', 'Apprentice'),
+(5, 'Epoch V: Gear-Train Resonance', '03:35', '05:15', 75, NULL, 'Natural passage reaches 04:50. Advance the minute hand +25 minutes to strike 05:15.', 'Adept'),
+(6, 'Epoch VI: Chrono Dilation', '07:10', '08:15', 75, NULL, 'Natural passage overshoots to 08:25! Slot negative fraction warps to decelerate the dial back to 08:15.', 'Adept'),
+(7, 'Epoch VII: The Omnipresent Dial', '10:15', '12:00', 75, 3, 'Natural passage reaches 11:30. Bridge the 30-minute gap to 12:00 using no more than 3 fraction pins.', 'Expert'),
+(8, 'Epoch VIII: The Brass Pendulum', '02:00', '04:30', 75, 4, 'Natural run reaches 03:15. Harness hour step advances and minute sweeps with a strict 4-pin budget.', 'Expert'),
+(9, 'Epoch IX: Dual Escapement Cadence', '01:30', '03:15', 75, 2, 'Natural run reaches 02:45. Advance +30 minutes to reach 03:15 using at most 2 pins!', 'Master'),
+(10, 'Epoch X: The Dual-Arbor Leap', '02:20', '04:30', 75, 5, 'Natural run reaches 03:35. Coordinate inner and outer triggers to bridge a 55-minute gap with max 5 pins.', 'Master'),
+(11, 'Epoch XI: Harmonic Oscillations', '04:45', '06:45', 75, 4, 'Natural run reaches 06:00. Advance 45 minutes to synchronize with 06:45 using 4 pins max.', 'Grandmaster'),
+(12, 'Epoch XII: The Monolithic Leap', '06:25', '08:00', 75, 1, 'Natural run reaches 07:40. You need exactly +20m to reach 08:00 — achieve this with ONLY 1 pin!', 'Grandmaster'),
+(13, 'Epoch XIII: Chrono Convergence', '02:00', '04:10', 75, 5, 'Natural run reaches 03:15. Complex 55-minute coordination under a 5-pin budget.', 'Chronos Supreme'),
+(14, 'Epoch XIV: Concentric Resonance', '05:20', '07:00', 75, 3, 'Natural run reaches 06:35. Bridge the 25-minute offset to 07:00 with at most 3 pins.', 'Chronos Supreme'),
+(15, 'Epoch XV: Grand Chronomancer Apex', '03:25', '05:05', 75, 4, 'The pinnacle trial. Natural run reaches 04:40. Reach 05:05 within a strict 4-pin constraint!', 'Chronos Supreme')
+ON DUPLICATE KEY UPDATE 
+    title=VALUES(title), 
+    start_time=VALUES(start_time), 
+    target_time=VALUES(target_time), 
+    running_duration_minutes=VALUES(running_duration_minutes),
+    max_pins=VALUES(max_pins),
+    description=VALUES(description), 
+    difficulty=VALUES(difficulty);

@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'chronos_horology_super_secret_jwt_passkey_2024';
-const ADMIN_MASTER_KEY = process.env.ADMIN_MASTER_KEY || 'CHRONOS_MASTER_ARCHITECT_2024';
+const ADMIN_MASTER_KEY = process.env.ADMIN_MASTER_KEY || 'MasterClockmaker2024';
 
 function authenticateToken(req, res, next) {
   // Check direct owner master passkey header

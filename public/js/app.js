@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let puzzlesList = [];
   let currentChallenge = null; // { isCustom: true, fromFriend: boolean, challenger: string, start: string, target: string, duration: number }
 
-  // Level hints database (Exclusively Fractions)
+  // Level hints database (Exclusively Fractions) for all 15 Epochs
   const levelHints = {
     1: {
       formula: '01:00 (Start) + 75m (Natural) = 02:15 ➔ <span class="text-primary font-bold">+1/3 hr Needed for 02:35</span>',
@@ -49,31 +49,43 @@ document.addEventListener('DOMContentLoaded', async () => {
       hint: 'Net warp needed is <strong>+5 minutes</strong> (+1/3 hr - 1/4 hr). Place one <strong>Green (+1/3)</strong> pin and one <strong>Red (-1/4)</strong> pin!'
     },
     3: {
-      formula: '02:00 (Start) + 75m (Natural) = 03:15 ➔ <span class="text-primary font-bold">+1h 15m Needed for 04:30</span>',
-      hint: 'Bridge the large 1-hour gap by slotting a pin into the <strong>Inner (Hour) Ring</strong> (e.g. at 3h), and minute pins on the Outer Ring to hit 04:30!'
+      hint: 'Natural run from 06:00 reaches 07:15. You need +45 minutes to reach 08:00. Coordinate multiple fraction pins along the minute sweep!'
     },
     4: {
-      formula: '06:00 (Start) + 75m (Natural) = 07:15 ➔ <span class="text-primary font-bold">+45m Needed for 08:00</span>',
-      hint: 'Coordinate both Hour Ring (Inner) and Minute Ring (Outer) fraction pins in sequence!'
+      hint: 'Natural run from 07:00 reaches exactly 08:15! If needed, let time run or balance opposing warps.'
     },
     5: {
-      formula: '10:15 (Start) + 75m (Natural) = 11:30 ➔ <span class="text-primary font-bold">+30m Needed for 12:00</span>',
-      hint: 'Combine fraction pins along the path: e.g. one <strong>Green (+1/3)</strong> and one <strong>Blue (+1/6)</strong> pin!'
-    },
-    6: {
       hint: 'Natural run from 03:35 reaches 04:50. Advance the minute hand +25 minutes using fraction warps to synchronize with 05:15.'
     },
+    6: {
+      hint: 'Natural run from 07:10 overshoots to 08:25! Slot negative fraction pins (-1/4 hr = -15m) to decelerate the dial back to 08:15.'
+    },
     7: {
-      hint: 'Natural run overshoots to 08:25! Slot negative fraction pins (-1/4 hr = -15m) to decelerate back to 08:15.'
+      hint: 'Natural run from 10:15 reaches 11:30. Advance +30m to reach 12:00. <strong>Constraint: Max 3 pins allowed!</strong> (Tip: e.g. +20m and +10m uses only 2 pins).'
     },
     8: {
-      hint: 'Harness the Inner Hour Ring to trigger an hour leap at Hour 3, then fine-tune minute pins to strike 04:30.'
+      hint: 'Natural run from 02:00 reaches 03:15. Bridge the 1h 15m gap to 04:30. <strong>Constraint: Max 4 pins allowed!</strong> Coordinate inner hour step and outer minute pins.'
     },
     9: {
-      hint: 'Bridge the 1 hour 50 minute gap between 10:00 and 11:50 by harmonizing both hour-ring advances and minute warps.'
+      hint: 'Natural run from 01:30 reaches 02:45. Advance +30m to strike 03:15. <strong>Constraint: Max 2 pins allowed!</strong> Combine two positive fraction pins.'
     },
     10: {
-      hint: 'Coordinate concentric hour advances and fraction cascades to reach 04:50 before duration expires.'
+      hint: 'Natural run from 02:20 reaches 03:35. Bridge the 55-minute gap to 04:30. <strong>Constraint: Max 5 pins allowed!</strong>'
+    },
+    11: {
+      hint: 'Natural run from 04:45 reaches 06:00. Advance +45 minutes to strike 06:45. <strong>Constraint: Max 4 pins allowed!</strong>'
+    },
+    12: {
+      hint: 'Natural run from 06:25 reaches 07:40. You need exactly +20 minutes to reach 08:00. <strong>Constraint: Strict 1-pin limit!</strong> Use a single Green (+1/3) pin!'
+    },
+    13: {
+      hint: 'Natural run from 02:00 reaches 03:15. Advance to 04:10 (+55m). <strong>Constraint: Max 5 pins allowed!</strong>'
+    },
+    14: {
+      hint: 'Natural run from 05:20 reaches 06:35. Advance +25m to reach 07:00. <strong>Constraint: Max 3 pins allowed!</strong>'
+    },
+    15: {
+      hint: 'Pinnacle Trial: Natural run from 03:25 reaches 04:40. Bridge +25 minutes to achieve 05:05 apex. <strong>Constraint: Max 4 pins allowed!</strong>'
     }
   };
 
@@ -467,6 +479,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
     });
+
+    updatePinBudgetDisplay();
+  }
+
+  function updatePinBudgetDisplay() {
+    const badge = document.getElementById('pin-budget-badge');
+    if (!badge) return;
+    const count = dragManager.getPlacedPinsCount();
+    const max = dragManager.maxPins;
+
+    if (max === null) {
+      badge.textContent = count > 0 ? `Unlimited (${count} Placed)` : 'Unlimited';
+      badge.className = 'px-2 py-0.5 rounded font-bold text-[10px] bg-primary/20 text-primary border border-primary/40 transition-colors';
+    } else {
+      badge.textContent = `Placed: ${count} / ${max} Max`;
+      if (count >= max) {
+        badge.className = 'px-2 py-0.5 rounded font-bold text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-sm';
+      } else {
+        badge.className = 'px-2 py-0.5 rounded font-bold text-[10px] bg-primary/20 text-primary border border-primary/40 transition-colors';
+      }
+    }
   }
 
   // -------------------------------------------------------------
@@ -542,16 +575,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) {
       console.warn('Using local puzzles list.');
       puzzlesList = [
-        { level_number: 1, title: 'Epoch I: The First Escapement', start_time: '01:00', target_time: '02:35', running_duration_minutes: 75, description: 'Natural passage reaches 02:15. You need an extra 20 minutes to reach 02:35.' },
-        { level_number: 2, title: 'Epoch II: Equilibrium of Gears', start_time: '12:00', target_time: '01:20', running_duration_minutes: 75, description: 'Natural passage reaches 01:15. A delicate balance (+20m and -15m) bridges the 5-minute offset to 01:20.' },
-        { level_number: 3, title: 'Epoch III: The Brass Pendulum', start_time: '02:00', target_time: '04:30', running_duration_minutes: 75, description: 'Natural run leads to 03:15. Coordinate multiple time warps to land precisely at 04:30.' },
-        { level_number: 4, title: 'Epoch IV: The Temporal Paradox', start_time: '06:00', target_time: '08:00', running_duration_minutes: 75, description: 'Coordinate the Inner (Hour) and Outer (Minute) rings in sequence. Timing is everything.' },
-        { level_number: 5, title: 'Epoch V: The Omnipresent Dial', start_time: '10:15', target_time: '12:00', running_duration_minutes: 75, description: 'A master trial requiring strategic placement to prevent reverse loops and hit the 12:00 apex.' },
-        { level_number: 6, title: 'Epoch VI: Gear-Train Resonance', start_time: '03:35', target_time: '05:15', running_duration_minutes: 75, description: 'Natural passage from 03:35 reaches 04:50. Advance the minute hand +25 minutes using fraction warps to synchronize with 05:15.' },
-        { level_number: 7, title: 'Epoch VII: Chrono Dilation', start_time: '07:10', target_time: '08:15', running_duration_minutes: 75, description: 'Natural run overshoots to 08:25! Slot negative fraction pins (-1/4 hr = -15m) to decelerate the dial back to 08:15.' },
-        { level_number: 8, title: 'Epoch VIII: The Dual-Arbor Leap', start_time: '02:20', target_time: '04:30', running_duration_minutes: 75, description: 'Natural run reaches 03:35. Harness the Inner Hour Ring to trigger an hour leap at Hour 3, then fine-tune minute pins to strike 04:30.' },
-        { level_number: 9, title: 'Epoch IX: Celestial Escapement', start_time: '08:45', target_time: '11:50', running_duration_minutes: 75, description: 'Bridge the 1 hour 50 minute gap between 10:00 (natural run end) and 11:50 by harmonizing both hour-ring advances and minute warps.' },
-        { level_number: 10, title: 'Epoch X: Grand Chronomancer Trial', start_time: '01:00', target_time: '04:50', running_duration_minutes: 75, description: 'The master challenge. Natural run reaches 02:15. Coordinate concentric hour advances and fraction cascades to reach 04:50 before duration expires.' }
+        { level_number: 1, title: 'Epoch I: The First Escapement', start_time: '01:00', target_time: '02:35', running_duration_minutes: 75, max_pins: null, description: 'Natural passage reaches 02:15. You need an extra 20 minutes to reach 02:35.' },
+        { level_number: 2, title: 'Epoch II: Equilibrium of Gears', start_time: '12:00', target_time: '01:20', running_duration_minutes: 75, max_pins: null, description: 'Natural passage reaches 01:15. A delicate balance (+20m and -15m) bridges the 5-minute offset to 01:20.' },
+        { level_number: 3, title: 'Epoch III: The Temporal Paradox', start_time: '06:00', target_time: '08:00', running_duration_minutes: 75, max_pins: null, description: 'Coordinate concentric rings to bridge a 45-minute offset from 07:15 natural run end to 08:00.' },
+        { level_number: 4, title: 'Epoch IV: Synchronized Arbors', start_time: '07:00', target_time: '08:15', running_duration_minutes: 75, max_pins: null, description: 'Natural 75m passage synchronizes directly with 08:15. Maintain balance across sweeps.' },
+        { level_number: 5, title: 'Epoch V: Gear-Train Resonance', start_time: '03:35', target_time: '05:15', running_duration_minutes: 75, max_pins: null, description: 'Natural passage reaches 04:50. Advance the minute hand +25 minutes to strike 05:15.' },
+        { level_number: 6, title: 'Epoch VI: Chrono Dilation', start_time: '07:10', target_time: '08:15', running_duration_minutes: 75, max_pins: null, description: 'Natural passage overshoots to 08:25! Slot negative fraction warps to decelerate the dial back to 08:15.' },
+        { level_number: 7, title: 'Epoch VII: The Omnipresent Dial', start_time: '10:15', target_time: '12:00', running_duration_minutes: 75, max_pins: 3, description: 'Natural passage reaches 11:30. Bridge the 30-minute gap to 12:00 using no more than 3 fraction pins.' },
+        { level_number: 8, title: 'Epoch VIII: The Brass Pendulum', start_time: '02:00', target_time: '04:30', running_duration_minutes: 75, max_pins: 4, description: 'Natural run reaches 03:15. Harness hour step advances and minute sweeps with a strict 4-pin budget.' },
+        { level_number: 9, title: 'Epoch IX: Dual Escapement Cadence', start_time: '01:30', target_time: '03:15', running_duration_minutes: 75, max_pins: 2, description: 'Natural run reaches 02:45. Advance +30 minutes to reach 03:15 using at most 2 pins!' },
+        { level_number: 10, title: 'Epoch X: The Dual-Arbor Leap', start_time: '02:20', target_time: '04:30', running_duration_minutes: 75, max_pins: 5, description: 'Natural run reaches 03:35. Coordinate inner and outer triggers to bridge a 55-minute gap with max 5 pins.' },
+        { level_number: 11, title: 'Epoch XI: Harmonic Oscillations', start_time: '04:45', target_time: '06:45', running_duration_minutes: 75, max_pins: 4, description: 'Natural run reaches 06:00. Advance 45 minutes to synchronize with 06:45 using 4 pins max.' },
+        { level_number: 12, title: 'Epoch XII: The Monolithic Leap', start_time: '06:25', target_time: '08:00', running_duration_minutes: 75, max_pins: 1, description: 'Natural run reaches 07:40. You need exactly +20m to reach 08:00 — achieve this with ONLY 1 pin!' },
+        { level_number: 13, title: 'Epoch XIII: Chrono Convergence', start_time: '02:00', target_time: '04:10', running_duration_minutes: 75, max_pins: 5, description: 'Natural run reaches 03:15. Complex 55-minute coordination under a 5-pin budget.' },
+        { level_number: 14, title: 'Epoch XIV: Concentric Resonance', start_time: '05:20', target_time: '07:00', running_duration_minutes: 75, max_pins: 3, description: 'Natural run reaches 06:35. Bridge the 25-minute offset to 07:00 with at most 3 pins.' },
+        { level_number: 15, title: 'Epoch XV: Grand Chronomancer Apex', start_time: '03:25', target_time: '05:05', running_duration_minutes: 75, max_pins: 4, description: 'The pinnacle trial. Natural run reaches 04:40. Reach 05:05 within a strict 4-pin constraint!' }
       ];
     }
     renderLevelList();
@@ -570,13 +608,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       const isCurrent = !isCustomActive && (p.level_number === currentLevelNumber);
       btn.className = `w-full flex items-center justify-between px-3 py-2 transition-all text-label-sm font-label-sm ${isCurrent ? 'bg-surface-container-highest border-l-2 border-primary text-primary font-semibold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'}`;
       btn.innerHTML = `
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-sm ${isCurrent ? 'text-primary' : 'text-primary/70'}">lock_open</span>
           <span>Epoch ${p.level_number}</span>
         </div>
-        <span class="text-[9px] ${isCurrent ? 'px-1.5 py-0.5 bg-primary/20 rounded text-primary border border-primary/30' : 'text-outline'}">
-          ${isCurrent ? 'ACTIVE' : p.target_time}
-        </span>
+        <div class="flex items-center gap-1.5">
+          ${p.max_pins ? `<span class="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded font-mono font-bold">${p.max_pins} max</span>` : ''}
+          <span class="text-[9px] ${isCurrent ? 'px-1.5 py-0.5 bg-primary/20 rounded text-primary border border-primary/30' : 'text-outline'}">
+            ${isCurrent ? 'ACTIVE' : p.target_time}
+          </span>
+        </div>
       `;
       btn.addEventListener('click', () => {
         selectLevel(p.level_number);
@@ -610,6 +651,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentLevelNumber = lvlNum;
     const puzzle = puzzlesList.find(p => p.level_number === lvlNum);
     if (!puzzle) return;
+
+    // Set pin constraint for this level
+    dragManager.setMaxPins(puzzle.max_pins || null);
 
     // Reset clock state and set time cleanly to new level's exact starting time
     engine.resetLevel(puzzle.start_time, puzzle.target_time, puzzle.running_duration_minutes);
@@ -880,6 +924,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     renderLevelList();
+    dragManager.setMaxPins(null);
     dragManager.returnAllPinsToInventory();
     renderPinsAndSockets();
 
@@ -1063,6 +1108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       toast.remove();
     }, 3200);
   }
+  window.showFloatingNotification = showFloatingNotification;
 
   // -------------------------------------------------------------
   // Tutorial, Hints & Interactive Walkthrough Engine
