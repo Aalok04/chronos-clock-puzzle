@@ -792,23 +792,32 @@
             <p class="font-mono text-[10px] text-on-surface-variant">Sign in with institutional handle or email.</p>
           </div>
 
+          <!-- Compulsory Barrier Notice -->
+          <div id="modal-compulsory-banner" class="hidden mb-4 p-3 rounded bg-amber-500/15 border border-amber-500/50 text-amber-200 font-mono text-[11px] flex items-start gap-2">
+            <span class="material-symbols-outlined text-base text-amber-400 shrink-0 mt-0.5">lock</span>
+            <div>
+              <div class="font-bold text-amber-300">Epoch 2 Solved! Account Required</div>
+              <div class="text-[10px] text-on-surface-variant mt-0.5">Create an account or sign in to save your victories and unlock Epoch 3 and all higher levels!</div>
+            </div>
+          </div>
+
           <!-- Alert message -->
           <div id="modal-auth-error" class="hidden mb-4 p-2 rounded bg-rose-950/60 border border-rose-500/60 text-rose-300 font-mono text-[11px]"></div>
 
           <!-- Form -->
           <form id="modal-auth-form" class="space-y-3 font-mono text-xs">
             <div>
-              <label class="block text-[10px] uppercase text-outline mb-1">Researcher Handle / Student Roll ID</label>
-              <input id="modal-handle-input" required class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="e.g. ChronoScholar or your name"/>
+              <label id="modal-handle-label" class="block text-[10px] uppercase text-outline mb-1">Username</label>
+              <input id="modal-handle-input" required class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="Enter your username"/>
             </div>
 
             <div id="modal-email-group" class="hidden">
-              <label class="block text-[10px] uppercase text-outline mb-1">Scholar Email</label>
-              <input id="modal-email-input" type="email" class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="your.email@example.com"/>
+              <label id="modal-email-label" class="block text-[10px] uppercase text-outline mb-1">Email</label>
+              <input id="modal-email-input" type="email" class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="Enter your email"/>
             </div>
 
             <div>
-              <label class="block text-[10px] uppercase text-outline mb-1">Temporal Passkey (Password)</label>
+              <label class="block text-[10px] uppercase text-outline mb-1">Password</label>
               <input id="modal-passkey-input" required type="password" class="w-full px-3 py-2 bg-surface-container border border-outline-variant rounded focus:border-primary focus:outline-none text-on-surface" placeholder="Enter your password"/>
             </div>
 

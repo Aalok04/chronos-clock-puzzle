@@ -12,22 +12,22 @@ router.post('/signup', async (req, res) => {
 
     // Validation
     if (!username || !email || !password) {
-      return res.status(400).json({ success: false, error: 'All fields (handle, email, passkey) are required.' });
+      return res.status(400).json({ success: false, error: 'All fields (username, email, password) are required.' });
     }
 
     const cleanUsername = username.trim();
     const cleanEmail = email.trim().toLowerCase();
 
     if (cleanUsername.length < 3 || cleanUsername.length > 40) {
-      return res.status(400).json({ success: false, error: 'Handle must be between 3 and 40 characters.' });
+      return res.status(400).json({ success: false, error: 'Username must be between 3 and 40 characters.' });
     }
 
     if (!cleanEmail.includes('@') || !cleanEmail.includes('.')) {
-      return res.status(400).json({ success: false, error: 'Please enter a valid scholar email address.' });
+      return res.status(400).json({ success: false, error: 'Please enter a valid email address.' });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ success: false, error: 'Passkey must be at least 6 characters long.' });
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters long.' });
     }
 
     // Check existing
@@ -39,7 +39,7 @@ router.post('/signup', async (req, res) => {
     if (existingUsers && existingUsers.length > 0) {
       const match = existingUsers[0];
       if (match.username.toLowerCase() === cleanUsername.toLowerCase()) {
-        return res.status(409).json({ success: false, error: 'This researcher handle is already registered.' });
+        return res.status(409).json({ success: false, error: 'This username is already registered.' });
       }
       return res.status(409).json({ success: false, error: 'An account with this email already exists.' });
     }
@@ -94,7 +94,7 @@ router.post('/login', async (req, res) => {
     const { handle, password } = req.body;
 
     if (!handle || !password) {
-      return res.status(400).json({ success: false, error: 'Handle and passkey are required.' });
+      return res.status(400).json({ success: false, error: 'Username/email and password are required.' });
     }
 
     const cleanHandle = handle.trim();
@@ -106,7 +106,7 @@ router.post('/login', async (req, res) => {
     );
 
     if (!users || users.length === 0) {
-      return res.status(401).json({ success: false, error: 'Invalid researcher handle or passkey.' });
+      return res.status(401).json({ success: false, error: 'Invalid username/email or password.' });
     }
 
     const user = users[0];
@@ -114,7 +114,7 @@ router.post('/login', async (req, res) => {
     // Verify bcrypt hash
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(401).json({ success: false, error: 'Invalid researcher handle or passkey.' });
+      return res.status(401).json({ success: false, error: 'Invalid username/email or password.' });
     }
 
     // Get user profile

@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   let currentLevelNumber = 1;
   let puzzlesList = [];
   let currentChallenge = null; // { isCustom: true, fromFriend: boolean, challenger: string, start: string, target: string, duration: number }
+  let isCompulsoryAuth = false;
+  let pendingLevelAfterAuth = null;
 
   // Level hints database (Exclusively Fractions) for all 15 Epochs
   const levelHints = {
@@ -214,6 +216,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 5. Check Active User Session
   await window.chronosAuth.checkSession();
   setupAuthListeners();
+  await syncGuestProgress();
 
   // 6. Check if incoming URL has a custom friend challenge duel
   checkURLChallenge();
@@ -308,13 +311,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else {
         if (victoryTitle) victoryTitle.textContent = 'TIME MASTER!';
         if (victoryDesc) victoryDesc.textContent = 'You solved the horological equation! The hands came to rest exactly at the target time.';
-        if (btnNextLevel) btnNextLevel.textContent = 'Next Epoch »';
+        if (btnNextLevel) {
+          if (currentLevelNumber === 2 && !window.chronosAuth.user) {
+            btnNextLevel.textContent = 'Unlock Epoch 3 (Sign In) »';
+          } else {
+            btnNextLevel.textContent = 'Next Epoch »';
+          }
+        }
         if (btnShareVictory) btnShareVictory.classList.add('hidden');
       }
 
       victoryOverlay.classList.remove('hidden');
 
-      // Record to MySQL backend
+      // Record to backend (or queue locally if playing in guest mode)
       try {
         const curPuzzle = puzzlesList.find(p => p.level_number === currentLevelNumber);
         const res = await fetch('/api/game/attempt', {
@@ -324,7 +333,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             ...window.chronosAuth.getAuthHeader()
           },
           body: JSON.stringify({
-            puzzleId: curPuzzle ? curPuzzle.id : null,
+            puzzleId: curPuzzle ? curPuzzle.id : currentLevelNumber,
             levelNumber: currentLevelNumber,
             pinsConfiguration: engine.getAllPlacedPins(),
             finalDisplayedTime: finalTime,
@@ -337,6 +346,15 @@ document.addEventListener('DOMContentLoaded', async () => {
           window.chronosAuth.user.current_level = resData.updatedProfile.current_level;
           window.chronosAuth.user.rank_title = resData.updatedProfile.rank_title;
           updateProfileUI();
+        } else if (!window.chronosAuth.user) {
+          // Track guest-solved levels so they sync immediately upon signing up or logging in!
+          try {
+            const guestSolved = JSON.parse(localStorage.getItem('chronos_guest_solved') || '[]');
+            if (!guestSolved.includes(currentLevelNumber)) {
+              guestSolved.push(currentLevelNumber);
+              localStorage.setItem('chronos_guest_solved', JSON.stringify(guestSolved));
+            }
+          } catch (e) {}
         }
       } catch (err) {
         console.warn('Could not sync victory with cloud database:', err);
@@ -575,25 +593,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) {
       console.warn('Using local puzzles list.');
       puzzlesList = [
-        { level_number: 1, title: 'Epoch I: The First Escapement', start_time: '01:00', target_time: '02:35', running_duration_minutes: 75, max_pins: null, description: 'Natural passage reaches 02:15. You need an extra 20 minutes to reach 02:35.' },
-        { level_number: 2, title: 'Epoch II: Equilibrium of Gears', start_time: '12:00', target_time: '01:20', running_duration_minutes: 75, max_pins: null, description: 'Natural passage reaches 01:15. A delicate balance (+20m and -15m) bridges the 5-minute offset to 01:20.' },
-        { level_number: 3, title: 'Epoch III: The Temporal Paradox', start_time: '06:00', target_time: '08:00', running_duration_minutes: 75, max_pins: null, description: 'Coordinate concentric rings to bridge a 45-minute offset from 07:15 natural run end to 08:00.' },
-        { level_number: 4, title: 'Epoch IV: Synchronized Arbors', start_time: '07:00', target_time: '08:15', running_duration_minutes: 75, max_pins: null, description: 'Natural 75m passage synchronizes directly with 08:15. Maintain balance across sweeps.' },
-        { level_number: 5, title: 'Epoch V: Gear-Train Resonance', start_time: '03:35', target_time: '05:15', running_duration_minutes: 75, max_pins: null, description: 'Natural passage reaches 04:50. Advance the minute hand +25 minutes to strike 05:15.' },
-        { level_number: 6, title: 'Epoch VI: Chrono Dilation', start_time: '07:10', target_time: '08:15', running_duration_minutes: 75, max_pins: null, description: 'Natural passage overshoots to 08:25! Slot negative fraction warps to decelerate the dial back to 08:15.' },
-        { level_number: 7, title: 'Epoch VII: The Omnipresent Dial', start_time: '10:15', target_time: '12:00', running_duration_minutes: 75, max_pins: 3, description: 'Natural passage reaches 11:30. Bridge the 30-minute gap to 12:00 using no more than 3 fraction pins.' },
-        { level_number: 8, title: 'Epoch VIII: The Brass Pendulum', start_time: '02:00', target_time: '04:30', running_duration_minutes: 75, max_pins: 4, description: 'Natural run reaches 03:15. Harness hour step advances and minute sweeps with a strict 4-pin budget.' },
-        { level_number: 9, title: 'Epoch IX: Dual Escapement Cadence', start_time: '01:30', target_time: '03:15', running_duration_minutes: 75, max_pins: 2, description: 'Natural run reaches 02:45. Advance +30 minutes to reach 03:15 using at most 2 pins!' },
-        { level_number: 10, title: 'Epoch X: The Dual-Arbor Leap', start_time: '02:20', target_time: '04:30', running_duration_minutes: 75, max_pins: 5, description: 'Natural run reaches 03:35. Coordinate inner and outer triggers to bridge a 55-minute gap with max 5 pins.' },
-        { level_number: 11, title: 'Epoch XI: Harmonic Oscillations', start_time: '04:45', target_time: '06:45', running_duration_minutes: 75, max_pins: 4, description: 'Natural run reaches 06:00. Advance 45 minutes to synchronize with 06:45 using 4 pins max.' },
-        { level_number: 12, title: 'Epoch XII: The Monolithic Leap', start_time: '06:25', target_time: '08:00', running_duration_minutes: 75, max_pins: 1, description: 'Natural run reaches 07:40. You need exactly +20m to reach 08:00 — achieve this with ONLY 1 pin!' },
-        { level_number: 13, title: 'Epoch XIII: Chrono Convergence', start_time: '02:00', target_time: '04:10', running_duration_minutes: 75, max_pins: 5, description: 'Natural run reaches 03:15. Complex 55-minute coordination under a 5-pin budget.' },
-        { level_number: 14, title: 'Epoch XIV: Concentric Resonance', start_time: '05:20', target_time: '07:00', running_duration_minutes: 75, max_pins: 3, description: 'Natural run reaches 06:35. Bridge the 25-minute offset to 07:00 with at most 3 pins.' },
-        { level_number: 15, title: 'Epoch XV: Grand Chronomancer Apex', start_time: '03:25', target_time: '05:05', running_duration_minutes: 75, max_pins: 4, description: 'The pinnacle trial. Natural run reaches 04:40. Reach 05:05 within a strict 4-pin constraint!' }
+        { id: 1, level_number: 1, title: 'Epoch I: The First Escapement', start_time: '01:00', target_time: '02:35', running_duration_minutes: 75, max_pins: null, description: 'Natural passage reaches 02:15. You need an extra 20 minutes to reach 02:35.' },
+        { id: 2, level_number: 2, title: 'Epoch II: Equilibrium of Gears', start_time: '12:00', target_time: '01:20', running_duration_minutes: 75, max_pins: null, description: 'Natural passage reaches 01:15. A delicate balance (+20m and -15m) bridges the 5-minute offset to 01:20.' },
+        { id: 3, level_number: 3, title: 'Epoch III: The Temporal Paradox', start_time: '06:00', target_time: '08:00', running_duration_minutes: 75, max_pins: null, description: 'Coordinate concentric rings to bridge a 45-minute offset from 07:15 natural run end to 08:00.' },
+        { id: 4, level_number: 4, title: 'Epoch IV: Synchronized Arbors', start_time: '07:00', target_time: '08:15', running_duration_minutes: 75, max_pins: null, description: 'Natural 75m passage synchronizes directly with 08:15. Maintain balance across sweeps.' },
+        { id: 5, level_number: 5, title: 'Epoch V: Gear-Train Resonance', start_time: '03:35', target_time: '05:15', running_duration_minutes: 75, max_pins: null, description: 'Natural passage reaches 04:50. Advance the minute hand +25 minutes to strike 05:15.' },
+        { id: 6, level_number: 6, title: 'Epoch VI: Chrono Dilation', start_time: '07:10', target_time: '08:15', running_duration_minutes: 75, max_pins: null, description: 'Natural passage overshoots to 08:25! Slot negative fraction warps to decelerate the dial back to 08:15.' },
+        { id: 7, level_number: 7, title: 'Epoch VII: The Omnipresent Dial', start_time: '10:15', target_time: '12:00', running_duration_minutes: 75, max_pins: 3, description: 'Natural passage reaches 11:30. Bridge the 30-minute gap to 12:00 using no more than 3 fraction pins.' },
+        { id: 8, level_number: 8, title: 'Epoch VIII: The Brass Pendulum', start_time: '02:00', target_time: '04:30', running_duration_minutes: 75, max_pins: 4, description: 'Natural run reaches 03:15. Harness hour step advances and minute sweeps with a strict 4-pin budget.' },
+        { id: 9, level_number: 9, title: 'Epoch IX: Dual Escapement Cadence', start_time: '01:30', target_time: '03:15', running_duration_minutes: 75, max_pins: 2, description: 'Natural run reaches 02:45. Advance +30 minutes to reach 03:15 using at most 2 pins!' },
+        { id: 10, level_number: 10, title: 'Epoch X: The Dual-Arbor Leap', start_time: '02:20', target_time: '04:30', running_duration_minutes: 75, max_pins: 5, description: 'Natural run reaches 03:35. Coordinate inner and outer triggers to bridge a 55-minute gap with max 5 pins.' },
+        { id: 11, level_number: 11, title: 'Epoch XI: Harmonic Oscillations', start_time: '04:45', target_time: '06:45', running_duration_minutes: 75, max_pins: 4, description: 'Natural run reaches 06:00. Advance 45 minutes to synchronize with 06:45 using 4 pins max.' },
+        { id: 12, level_number: 12, title: 'Epoch XII: The Monolithic Leap', start_time: '06:25', target_time: '08:00', running_duration_minutes: 75, max_pins: 1, description: 'Natural run reaches 07:40. You need exactly +20m to reach 08:00 — achieve this with ONLY 1 pin!' },
+        { id: 13, level_number: 13, title: 'Epoch XIII: Chrono Convergence', start_time: '02:00', target_time: '04:10', running_duration_minutes: 75, max_pins: 5, description: 'Natural run reaches 03:15. Complex 55-minute coordination under a 5-pin budget.' },
+        { id: 14, level_number: 14, title: 'Epoch XIV: Concentric Resonance', start_time: '05:20', target_time: '07:00', running_duration_minutes: 75, max_pins: 3, description: 'Natural run reaches 06:35. Bridge the 25-minute offset to 07:00 with at most 3 pins.' },
+        { id: 15, level_number: 15, title: 'Epoch XV: Grand Chronomancer Apex', start_time: '03:25', target_time: '05:05', running_duration_minutes: 75, max_pins: 4, description: 'The pinnacle trial. Natural run reaches 04:40. Reach 05:05 within a strict 4-pin constraint!' }
       ];
     }
     renderLevelList();
     selectLevel(currentLevelNumber);
+  }
+
+  function openCompulsoryAuthModal(targetLvl = 3) {
+    isCompulsoryAuth = true;
+    pendingLevelAfterAuth = targetLvl;
+
+    const compulsoryBanner = document.getElementById('modal-compulsory-banner');
+    if (compulsoryBanner) compulsoryBanner.classList.remove('hidden');
+
+    const btnGuest = document.getElementById('btn-modal-guest');
+    if (btnGuest) btnGuest.classList.add('hidden');
+
+    const tabSignUp = document.getElementById('modal-tab-signup');
+    if (tabSignUp) tabSignUp.click();
+
+    authOverlay.classList.remove('hidden');
   }
 
   function renderLevelList() {
@@ -602,17 +636,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     listContainer.innerHTML = '';
 
     const isCustomActive = currentChallenge && currentChallenge.isCustom;
+    const isGuest = !window.chronosAuth.user;
 
     puzzlesList.forEach(p => {
       const btn = document.createElement('button');
       const isCurrent = !isCustomActive && (p.level_number === currentLevelNumber);
-      btn.className = `w-full flex items-center justify-between px-3 py-2 transition-all text-label-sm font-label-sm ${isCurrent ? 'bg-surface-container-highest border-l-2 border-primary text-primary font-semibold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'}`;
+      const isLocked = isGuest && p.level_number > 2;
+
+      btn.className = `w-full flex items-center justify-between px-3 py-2 transition-all text-label-sm font-label-sm ${
+        isCurrent
+          ? 'bg-surface-container-highest border-l-2 border-primary text-primary font-semibold'
+          : isLocked
+            ? 'text-outline hover:text-on-surface-variant hover:bg-surface-container-high/60 opacity-80'
+            : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high'
+      }`;
       btn.innerHTML = `
         <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-sm ${isCurrent ? 'text-primary' : 'text-primary/70'}">lock_open</span>
+          <span class="material-symbols-outlined text-sm ${
+            isCurrent ? 'text-primary' : isLocked ? 'text-outline' : 'text-primary/70'
+          }">${isLocked ? 'lock' : 'lock_open'}</span>
           <span>Epoch ${p.level_number}</span>
         </div>
         <div class="flex items-center gap-1.5">
+          ${isLocked ? `<span class="text-[9px] px-1.5 py-0.2 bg-outline-variant/30 text-outline border border-outline-variant/50 rounded font-mono">Sign In</span>` : ''}
           ${p.max_pins ? `<span class="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded font-mono font-bold">${p.max_pins} max</span>` : ''}
           <span class="text-[9px] ${isCurrent ? 'px-1.5 py-0.5 bg-primary/20 rounded text-primary border border-primary/30' : 'text-outline'}">
             ${isCurrent ? 'ACTIVE' : p.target_time}
@@ -644,6 +690,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function selectLevel(lvlNum) {
+    if (lvlNum > 2 && !window.chronosAuth.user) {
+      showFloatingNotification('Compulsory Sign In required to access Epoch 3 and beyond!', '#f59e0b');
+      openCompulsoryAuthModal(lvlNum);
+      return;
+    }
+
     currentChallenge = null;
     const challengeBanner = document.getElementById('friend-challenge-banner');
     if (challengeBanner) challengeBanner.classList.add('hidden');
@@ -724,6 +776,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (currentChallenge && currentChallenge.isCustom) {
       settingsOverlay.classList.remove('hidden');
     } else {
+      if (currentLevelNumber === 2 && !window.chronosAuth.user) {
+        showFloatingNotification('Epoch 2 Complete! Please create an account or sign in to continue to Epoch 3.', '#f59e0b');
+        openCompulsoryAuthModal(3);
+        return;
+      }
       const nextLvl = currentLevelNumber < puzzlesList.length ? currentLevelNumber + 1 : 1;
       selectLevel(nextLvl);
       showFloatingNotification(`Advancing to Epoch ${nextLvl}! Start: ${puzzlesList.find(p=>p.level_number===nextLvl)?.start_time || ''}`, '#10b981');
@@ -978,10 +1035,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Authentication & Session Listeners
   // -------------------------------------------------------------
   function setupAuthListeners() {
-    window.chronosAuth.onUserChange(() => updateProfileUI());
+    window.chronosAuth.onUserChange(() => {
+      updateProfileUI();
+      syncGuestProgress();
+    });
+
+    const btnGuest = document.getElementById('btn-modal-guest');
+    const compulsoryBanner = document.getElementById('modal-compulsory-banner');
+    const handleLabel = document.getElementById('modal-handle-label');
+    const handleInput = document.getElementById('modal-handle-input');
+    const emailLabel = document.getElementById('modal-email-label');
+    const emailInput = document.getElementById('modal-email-input');
 
     if (btnOpenAuth) {
       btnOpenAuth.addEventListener('click', () => {
+        isCompulsoryAuth = false;
+        pendingLevelAfterAuth = null;
+        if (compulsoryBanner) compulsoryBanner.classList.add('hidden');
+        if (btnGuest) btnGuest.classList.remove('hidden');
         authOverlay.classList.remove('hidden');
       });
     }
@@ -990,6 +1061,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       btnLogout.addEventListener('click', () => {
         window.chronosAuth.logout();
         showFloatingNotification('Signed out of Chronos Chamber.', '#eec06a');
+        updateProfileUI();
+        if (currentLevelNumber > 2) {
+          selectLevel(1);
+        }
       });
     }
 
@@ -1007,8 +1082,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         isSignUpMode = false;
         tabSignIn.className = 'py-2.5 px-3 rounded-sm font-label-md text-center transition-all bg-surface-container-highest text-primary border border-primary/40 font-semibold shadow-inner flex items-center justify-center gap-2';
         tabSignUp.className = 'py-2.5 px-3 rounded-sm font-label-md text-center transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center gap-2';
-        authFormHeading.textContent = 'Enter Time Chamber';
-        authSubmitLabel.textContent = 'UNLOCK CHRONOMETER CHAMBER';
+        authFormHeading.textContent = 'Sign In';
+        authSubmitLabel.textContent = 'SIGN IN & ENTER CHAMBER';
+        if (handleLabel) handleLabel.textContent = 'Username or Email';
+        if (handleInput) handleInput.placeholder = 'Enter your username or email';
         emailGroup.classList.add('hidden');
       });
 
@@ -1016,8 +1093,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         isSignUpMode = true;
         tabSignUp.className = 'py-2.5 px-3 rounded-sm font-label-md text-center transition-all bg-surface-container-highest text-primary border border-primary/40 font-semibold shadow-inner flex items-center justify-center gap-2';
         tabSignIn.className = 'py-2.5 px-3 rounded-sm font-label-md text-center transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center gap-2';
-        authFormHeading.textContent = 'Enroll in Archive Registry';
-        authSubmitLabel.textContent = 'FORGE TEMPORAL SEAL';
+        authFormHeading.textContent = 'Create Account';
+        authSubmitLabel.textContent = 'CREATE ACCOUNT & CONTINUE';
+        if (handleLabel) handleLabel.textContent = 'Username';
+        if (handleInput) handleInput.placeholder = 'Enter your username';
+        if (emailLabel) emailLabel.textContent = 'Email';
+        if (emailInput) emailInput.placeholder = 'Enter your email';
         emailGroup.classList.remove('hidden');
       });
     }
@@ -1045,7 +1126,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           if (res.success) {
             authOverlay.classList.add('hidden');
+            const wasCompulsory = isCompulsoryAuth;
+            const targetLvl = pendingLevelAfterAuth;
+            isCompulsoryAuth = false;
+            pendingLevelAfterAuth = null;
+
+            if (compulsoryBanner) compulsoryBanner.classList.add('hidden');
+            if (btnGuest) btnGuest.classList.remove('hidden');
+
             showFloatingNotification(`Welcome, ${res.user.username}!`, '#10b981');
+            updateProfileUI();
+
+            if (wasCompulsory || (targetLvl && targetLvl > 2)) {
+              setTimeout(() => {
+                selectLevel(targetLvl || 3);
+                showFloatingNotification(`Epoch ${targetLvl || 3} Unlocked! Let the trials continue.`, '#10b981');
+              }, 400);
+            }
           } else {
             authErrorEl.textContent = res.error || 'Authentication failed.';
             authErrorEl.classList.remove('hidden');
@@ -1058,7 +1155,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Guest Mode Button
-    const btnGuest = document.getElementById('btn-modal-guest');
     if (btnGuest) {
       btnGuest.addEventListener('click', () => {
         window.chronosAuth.enableGuestMode();
@@ -1068,12 +1164,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Close Auth Modal
+    function closeAuthModal() {
+      authOverlay.classList.add('hidden');
+      if (isCompulsoryAuth) {
+        isCompulsoryAuth = false;
+        pendingLevelAfterAuth = null;
+        showFloatingNotification('Sign in required to access Epoch 3 and higher levels.', '#eec06a');
+      }
+      if (compulsoryBanner) compulsoryBanner.classList.add('hidden');
+      if (btnGuest) btnGuest.classList.remove('hidden');
+    }
+
     const btnCloseAuth = document.getElementById('btn-close-auth');
     if (btnCloseAuth) {
-      btnCloseAuth.addEventListener('click', () => {
-        authOverlay.classList.add('hidden');
-      });
+      btnCloseAuth.addEventListener('click', closeAuthModal);
     }
+
+    authOverlay.addEventListener('click', (e) => {
+      if (e.target === authOverlay) {
+        closeAuthModal();
+      }
+    });
 
     updateProfileUI();
   }
@@ -1088,6 +1199,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       userProfileBar.classList.add('hidden');
       btnOpenAuth.classList.remove('hidden');
+    }
+    renderLevelList();
+  }
+
+  // Sync any levels solved in guest mode when account is authenticated
+  async function syncGuestProgress() {
+    if (!window.chronosAuth.user || !window.chronosAuth.token) return;
+    try {
+      const guestSolved = JSON.parse(localStorage.getItem('chronos_guest_solved') || '[]');
+      if (Array.isArray(guestSolved) && guestSolved.length > 0) {
+        for (const lvl of guestSolved) {
+          const curP = puzzlesList.find(p => p.level_number === lvl);
+          await fetch('/api/game/attempt', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...window.chronosAuth.getAuthHeader()
+            },
+            body: JSON.stringify({
+              puzzleId: curP ? curP.id : lvl,
+              levelNumber: lvl,
+              pinsConfiguration: [],
+              finalDisplayedTime: curP ? curP.target_time : '00:00',
+              isSuccess: true
+            })
+          });
+        }
+        localStorage.removeItem('chronos_guest_solved');
+        const meRes = await fetch('/api/auth/me', {
+          headers: window.chronosAuth.getAuthHeader()
+        });
+        const meData = await meRes.json();
+        if (meData.success && meData.user) {
+          window.chronosAuth.user = meData.user;
+          updateProfileUI();
+        }
+      }
+    } catch (e) {
+      console.warn('Could not sync guest progress:', e);
     }
   }
 

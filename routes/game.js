@@ -93,18 +93,42 @@ router.post('/attempt', optionalAuth, async (req, res) => {
           [userId]
         );
 
-        const currentSolved = profiles[0] ? profiles[0].puzzles_solved + 1 : 1;
-        const nextLevel = Math.max((profiles[0] ? profiles[0].current_level : 1), (levelNumber || 1) + 1);
+        // Count all successful attempts for this user in game_attempts
+        let solvedAttempts = 1;
+        try {
+          const attemptCounts = await db.query(
+            'SELECT COUNT(*) AS total_solved FROM game_attempts WHERE user_id = ? AND is_success = 1',
+            [userId]
+          );
+          if (attemptCounts && attemptCounts[0]) {
+            solvedAttempts = parseInt(attemptCounts[0].total_solved, 10) || 1;
+          }
+        } catch (e) {}
+
+        const previousSolved = (profiles && profiles[0]) ? parseInt(profiles[0].puzzles_solved, 10) || 0 : 0;
+        const currentSolved = Math.max(previousSolved + 1, solvedAttempts);
+        const nextLevel = Math.max(
+          (profiles && profiles[0]) ? parseInt(profiles[0].current_level, 10) || 1 : 1,
+          (parseInt(levelNumber, 10) || 1) + 1,
+          currentSolved + 1
+        );
         const newRank = calculateRank(currentSolved);
 
-        await db.query(
-          'UPDATE user_profiles SET puzzles_solved = ?, current_level = ?, rank_title = ? WHERE user_id = ?',
-          [currentSolved, nextLevel, newRank, userId]
-        );
+        if (!profiles || profiles.length === 0) {
+          await db.query(
+            'INSERT INTO user_profiles (user_id, rank_title, puzzles_solved, current_level) VALUES (?, ?, ?, ?)',
+            [userId, newRank, currentSolved, nextLevel]
+          );
+        } else {
+          await db.query(
+            'UPDATE user_profiles SET puzzles_solved = ?, current_level = ?, rank_title = ? WHERE user_id = ?',
+            [currentSolved, nextLevel, newRank, userId]
+          );
+        }
 
         return res.json({
           success: true,
-          message: 'Temporal equation solved! Progress recorded to MySQL.',
+          message: 'Temporal equation solved! Progress recorded.',
           updatedProfile: {
             puzzles_solved: currentSolved,
             current_level: nextLevel,

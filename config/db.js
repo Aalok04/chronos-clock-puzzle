@@ -147,6 +147,16 @@ async function query(sql, params = []) {
   return executeMemoryQuery(sql, params);
 }
 
+function calculateRank(puzzlesSolved) {
+  if (puzzlesSolved >= 10) return 'Chronos Master of Time';
+  if (puzzlesSolved >= 8) return 'Arch-Chronomancer of Chronos';
+  if (puzzlesSolved >= 6) return 'Temporal Paragon';
+  if (puzzlesSolved >= 4) return 'Gear-Smith of the Void';
+  if (puzzlesSolved >= 2) return 'Master Horologist';
+  if (puzzlesSolved >= 1) return 'Escapement Adept';
+  return 'Apprentice Chronomancer';
+}
+
 // Lightweight SQL-like emulator for offline/dev fallback
 function executeMemoryQuery(sql, params) {
   const cleanSql = sql.trim();
@@ -160,20 +170,26 @@ function executeMemoryQuery(sql, params) {
   // SELECT joined users and user_profiles (User Roster)
   if (lower.includes('from users') && (lower.includes('join user_profiles') || lower.includes('order by'))) {
     return memoryStore.users.map(u => {
-      const profile = memoryStore.user_profiles.find(p => p.user_id === u.id) || {
+      const profile = memoryStore.user_profiles.find(p => Number(p.user_id) === Number(u.id)) || {
         rank_title: 'Apprentice Chronomancer',
         puzzles_solved: 0,
         current_level: 1
       };
+      // Reconcile with actual successful game_attempts to guarantee 100% accurate metrics
+      const solvedAttempts = memoryStore.game_attempts.filter(a => Number(a.user_id) === Number(u.id) && a.is_success).length;
+      const actualSolved = Math.max(profile.puzzles_solved || 0, solvedAttempts);
+      const actualLevel = Math.max(profile.current_level || 1, actualSolved > 0 ? actualSolved + 1 : 1);
+      const actualRank = calculateRank(actualSolved);
+
       return {
         id: u.id,
         username: u.username,
         email: u.email,
         role: u.role,
         created_at: u.created_at,
-        rank_title: profile.rank_title,
-        puzzles_solved: profile.puzzles_solved,
-        current_level: profile.current_level
+        rank_title: actualRank,
+        puzzles_solved: actualSolved,
+        current_level: actualLevel
       };
     });
   }
@@ -197,7 +213,7 @@ function executeMemoryQuery(sql, params) {
       return u ? [u] : [];
     }
     if (lower.includes('where id = ?')) {
-      const u = memoryStore.users.find(x => x.id === params[0]);
+      const u = memoryStore.users.find(x => Number(x.id) === Number(params[0]));
       return u ? [u] : [];
     }
     return memoryStore.users;
@@ -206,7 +222,7 @@ function executeMemoryQuery(sql, params) {
   // SELECT user_profiles
   if (lower.startsWith('select') && lower.includes('from user_profiles')) {
     if (lower.includes('where user_id = ?')) {
-      const p = memoryStore.user_profiles.find(x => x.user_id === params[0]);
+      const p = memoryStore.user_profiles.find(x => Number(x.user_id) === Number(params[0]));
       return p ? [p] : [];
     }
     return memoryStore.user_profiles;
@@ -223,6 +239,16 @@ function executeMemoryQuery(sql, params) {
       return p ? [p] : [];
     }
     return memoryStore.puzzles;
+  }
+
+  // SELECT game_attempts by user_id
+  if (lower.includes('count(*)') && lower.includes('from game_attempts') && lower.includes('where user_id = ?')) {
+    const isSuccessCheck = lower.includes('is_success = 1') || lower.includes('is_success = true');
+    const matched = memoryStore.game_attempts.filter(a => {
+      const matchesUser = Number(a.user_id) === Number(params[0]);
+      return isSuccessCheck ? (matchesUser && a.is_success) : matchesUser;
+    });
+    return [{ total_solved: matched.length, count: matched.length }];
   }
 
   // SELECT game_attempts aggregate (Total attempts & success count)
@@ -261,30 +287,38 @@ function executeMemoryQuery(sql, params) {
   // INSERT INTO user_profiles
   if (lower.startsWith('insert into user_profiles')) {
     const profile = {
-      user_id: params[0],
+      user_id: Number(params[0]),
       rank_title: params[1] || 'Apprentice Chronomancer',
-      puzzles_solved: params[2] || 0,
-      current_level: params[3] || 1,
+      puzzles_solved: Number(params[2]) || 0,
+      current_level: Number(params[3]) || 1,
       updated_at: new Date()
     };
     memoryStore.user_profiles.push(profile);
-    return { insertId: params[0], affectedRows: 1 };
+    return { insertId: profile.user_id, affectedRows: 1 };
   }
 
   // UPDATE user_profiles
   if (lower.startsWith('update user_profiles')) {
-    const userId = params[params.length - 1];
-    const profile = memoryStore.user_profiles.find(x => x.user_id === userId);
-    if (profile) {
-      if (params.length >= 4) {
-        profile.puzzles_solved = params[0];
-        profile.current_level = params[1];
-        profile.rank_title = params[2];
-      }
-      profile.updated_at = new Date();
+    const userId = Number(params[params.length - 1]);
+    let profile = memoryStore.user_profiles.find(x => Number(x.user_id) === userId);
+    if (!profile) {
+      profile = {
+        user_id: userId,
+        rank_title: params[2] || 'Apprentice Chronomancer',
+        puzzles_solved: Number(params[0]) || 0,
+        current_level: Number(params[1]) || 1,
+        updated_at: new Date()
+      };
+      memoryStore.user_profiles.push(profile);
       return { affectedRows: 1 };
     }
-    return { affectedRows: 0 };
+    if (params.length >= 4) {
+      profile.puzzles_solved = Number(params[0]);
+      profile.current_level = Number(params[1]);
+      profile.rank_title = params[2];
+    }
+    profile.updated_at = new Date();
+    return { affectedRows: 1 };
   }
 
   // UPDATE users SET role = ?

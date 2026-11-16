@@ -211,6 +211,16 @@ router.get('/active-players', requireAdmin, (req, res) => {
   }
 });
 
+function calculateRank(puzzlesSolved) {
+  if (puzzlesSolved >= 10) return 'Chronos Master of Time';
+  if (puzzlesSolved >= 8) return 'Arch-Chronomancer of Chronos';
+  if (puzzlesSolved >= 6) return 'Temporal Paragon';
+  if (puzzlesSolved >= 4) return 'Gear-Smith of the Void';
+  if (puzzlesSolved >= 2) return 'Master Horologist';
+  if (puzzlesSolved >= 1) return 'Escapement Adept';
+  return 'Apprentice Chronomancer';
+}
+
 // -------------------------------------------------------------
 // GET /api/admin/users - Roster of all registered player accounts
 // -------------------------------------------------------------
@@ -225,6 +235,24 @@ router.get('/users', requireAdmin, async (req, res) => {
        LEFT JOIN user_profiles p ON u.id = p.user_id
        ORDER BY u.created_at DESC`
     );
+
+    // Reconcile with game_attempts to guarantee 100% accurate solved count
+    if (Array.isArray(users)) {
+      for (const u of users) {
+        try {
+          const attemptCounts = await db.query(
+            'SELECT COUNT(*) AS total_solved FROM game_attempts WHERE user_id = ? AND is_success = 1',
+            [u.id]
+          );
+          const solvedCount = attemptCounts && attemptCounts[0] ? (parseInt(attemptCounts[0].total_solved, 10) || 0) : 0;
+          if (solvedCount > (u.puzzles_solved || 0)) {
+            u.puzzles_solved = solvedCount;
+            u.current_level = Math.max(u.current_level || 1, solvedCount + 1);
+            u.rank_title = calculateRank(solvedCount);
+          }
+        } catch (e) {}
+      }
+    }
 
     return res.json({
       success: true,

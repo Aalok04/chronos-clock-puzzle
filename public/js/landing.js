@@ -114,20 +114,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function updateModalMode(mode) {
     currentAuthMode = mode;
+    const handleLabel = document.getElementById('landing-handle-label');
+    const emailLabel = document.getElementById('landing-email-label');
+
     if (mode === 'signin') {
       tabSignin.className = "py-2 px-3 rounded-sm text-center transition-all bg-surface-container-highest text-primary border border-primary/40 font-semibold shadow-inner flex items-center justify-center gap-1.5";
       tabSignup.className = "py-2 px-3 rounded-sm text-center transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center gap-1.5";
-      formHeading.textContent = "Enter Chronometer Chamber";
-      formSubheading.textContent = "Sign in with your researcher credentials or student handle.";
+      formHeading.textContent = "Sign In";
+      formSubheading.textContent = "Sign in with your username or email.";
+      if (handleLabel) handleLabel.textContent = "Username or Email";
       emailGroup.classList.add('hidden');
-      submitLabel.textContent = "UNLOCK & ENTER CHAMBER";
+      submitLabel.textContent = "SIGN IN & ENTER CHAMBER";
     } else {
       tabSignup.className = "py-2 px-3 rounded-sm text-center transition-all bg-surface-container-highest text-primary border border-primary/40 font-semibold shadow-inner flex items-center justify-center gap-1.5";
       tabSignin.className = "py-2 px-3 rounded-sm text-center transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center gap-1.5";
-      formHeading.textContent = "Forge Chronomancer Profile";
-      formSubheading.textContent = "Register a new profile to track trials, cloud progress and medals.";
+      formHeading.textContent = "Create Account";
+      formSubheading.textContent = "Create a player account to sync progress and unlock all epochs.";
+      if (handleLabel) handleLabel.textContent = "Username";
+      if (emailLabel) emailLabel.textContent = "Email";
       emailGroup.classList.remove('hidden');
-      submitLabel.textContent = "CREATE PROFILE & ENTER";
+      submitLabel.textContent = "CREATE ACCOUNT";
     }
   }
 
