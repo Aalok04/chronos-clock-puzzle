@@ -20,18 +20,9 @@ class ChronosAuth {
 
   async checkSession() {
     if (!this.token) {
-      if (localStorage.getItem('chronos_guest') === 'true') {
-        this.isGuest = true;
-        this.user = {
-          username: 'Guest_Calibrator',
-          rank_title: 'Guest Scholar',
-          puzzles_solved: 0,
-          current_level: 1
-        };
-        this.notifyUserChange();
-        return this.user;
-      }
       this.user = null;
+      this.isGuest = false;
+      localStorage.removeItem('chronos_guest');
       this.notifyUserChange();
       return null;
     }
@@ -96,14 +87,9 @@ class ChronosAuth {
 
   enableGuestMode() {
     this.token = null;
-    this.isGuest = true;
-    this.user = {
-      username: 'Guest_Calibrator',
-      rank_title: 'Guest Scholar',
-      puzzles_solved: 0,
-      current_level: 1
-    };
-    localStorage.setItem('chronos_guest', 'true');
+    this.isGuest = false;
+    this.user = null;
+    localStorage.removeItem('chronos_guest');
     this.notifyUserChange();
   }
 

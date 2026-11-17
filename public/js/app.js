@@ -210,13 +210,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderClockSockets();
   renderPinsAndSockets();
 
-  // 4. Load Puzzles from API (or fallback)
-  await loadPuzzles();
-
-  // 5. Check Active User Session
+  // 4. Check Active User Session - Compulsory Authentication Enforced
   await window.chronosAuth.checkSession();
   setupAuthListeners();
-  await syncGuestProgress();
+
+  // 5. Load Puzzles from API (or fallback)
+  await loadPuzzles();
+
+  if (!window.chronosAuth.user) {
+    openCompulsoryAuthModal(1);
+  } else {
+    await syncGuestProgress();
+  }
 
   // 6. Check if incoming URL has a custom friend challenge duel
   checkURLChallenge();
@@ -535,6 +540,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Controls: Start, Reset, Speed
   // -------------------------------------------------------------
   btnStart.addEventListener('click', () => {
+    if (!window.chronosAuth.user) {
+      showFloatingNotification('Sign in or create an account to start the clock!', '#f59e0b');
+      openCompulsoryAuthModal(currentLevelNumber || 1);
+      return;
+    }
     if (engine.state === 'IDLE') {
       const outerCount = engine.sockets.outer.filter(Boolean).length;
       const innerCount = engine.sockets.inner.filter(Boolean).length;
@@ -630,12 +640,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       ];
     }
     renderLevelList();
-    selectLevel(currentLevelNumber);
+    if (window.chronosAuth.user) {
+      selectLevel(window.chronosAuth.user.current_level || currentLevelNumber);
+    }
   }
 
-  function openCompulsoryAuthModal(targetLvl = 3) {
+  function openCompulsoryAuthModal(targetLvl = 1) {
     isCompulsoryAuth = true;
-    pendingLevelAfterAuth = targetLvl;
+    pendingLevelAfterAuth = targetLvl || 1;
 
     const compulsoryBanner = document.getElementById('modal-compulsory-banner');
     if (compulsoryBanner) compulsoryBanner.classList.remove('hidden');
@@ -658,15 +670,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     listContainer.innerHTML = '';
 
     const isCustomActive = currentChallenge && currentChallenge.isCustom;
-    const isGuest = !window.chronosAuth.user;
-    const userMaxLevel = (window.chronosAuth.user && window.chronosAuth.user.current_level)
-      ? window.chronosAuth.user.current_level
-      : (isGuest ? 2 : 1);
+    const isAuthed = !!window.chronosAuth.user;
 
     puzzlesList.forEach(p => {
       const btn = document.createElement('button');
       const isCurrent = !isCustomActive && (p.level_number === currentLevelNumber);
-      const isLocked = isGuest ? (p.level_number > 2) : (p.level_number > userMaxLevel);
+      const isLocked = !isAuthed;
 
       btn.className = `w-full flex items-center justify-between px-3 py-2 transition-all text-label-sm font-label-sm ${
         isCurrent
@@ -683,7 +692,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <span>Epoch ${p.level_number}</span>
         </div>
         <div class="flex items-center gap-1.5">
-          ${isLocked ? `<span class="text-[9px] px-1.5 py-0.2 bg-outline-variant/30 text-outline border border-outline-variant/50 rounded font-mono">${isGuest ? 'Sign In' : 'Locked'}</span>` : ''}
+          ${!isAuthed ? `<span class="text-[9px] px-1.5 py-0.2 bg-outline-variant/30 text-outline border border-outline-variant/50 rounded font-mono">Sign In</span>` : ''}
           ${p.max_pins ? `<span class="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded font-mono font-bold">${p.max_pins} max</span>` : ''}
           <span class="text-[9px] ${isCurrent ? 'px-1.5 py-0.5 bg-primary/20 rounded text-primary border border-primary/30' : 'text-outline'}">
             ${isCurrent ? 'ACTIVE' : p.target_time}
@@ -709,24 +718,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       </span>
     `;
     duelBtn.addEventListener('click', () => {
+      if (!window.chronosAuth.user) {
+        showFloatingNotification('Sign in or create an account to challenge or duel!', '#f59e0b');
+        openCompulsoryAuthModal(1);
+        return;
+      }
       settingsOverlay.classList.remove('hidden');
     });
     listContainer.appendChild(duelBtn);
   }
 
   function selectLevel(lvlNum) {
-    if (lvlNum > 2 && !window.chronosAuth.user) {
-      showFloatingNotification('Compulsory Sign In required to access Epoch 3 and beyond!', '#f59e0b');
-      openCompulsoryAuthModal(lvlNum);
-      return;
-    }
-
-    const userMaxLevel = (window.chronosAuth.user && window.chronosAuth.user.current_level)
-      ? window.chronosAuth.user.current_level
-      : 2;
-
-    if (window.chronosAuth.user && lvlNum > userMaxLevel) {
-      showFloatingNotification(`Complete Epoch ${lvlNum - 1} first to unlock Epoch ${lvlNum}!`, '#f59e0b');
+    if (!window.chronosAuth.user) {
+      showFloatingNotification('Authentication required to play Chronos!', '#f59e0b');
+      openCompulsoryAuthModal(lvlNum || 1);
       return;
     }
 
@@ -810,9 +815,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (currentChallenge && currentChallenge.isCustom) {
       settingsOverlay.classList.remove('hidden');
     } else {
-      if (currentLevelNumber === 2 && !window.chronosAuth.user) {
-        showFloatingNotification('Epoch 2 Complete! Please create an account or sign in to continue to Epoch 3.', '#f59e0b');
-        openCompulsoryAuthModal(3);
+      if (!window.chronosAuth.user) {
+        showFloatingNotification('Sign in or create an account to advance!', '#f59e0b');
+        openCompulsoryAuthModal(currentLevelNumber + 1);
         return;
       }
       const nextLvl = currentLevelNumber < puzzlesList.length ? currentLevelNumber + 1 : 1;
@@ -1083,13 +1088,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (btnOpenAuth) {
       btnOpenAuth.addEventListener('click', () => {
-        isCompulsoryAuth = false;
-        pendingLevelAfterAuth = null;
-        if (compulsoryBanner) compulsoryBanner.classList.add('hidden');
-        if (btnGuest) btnGuest.classList.remove('hidden');
-        const btnCloseAuth = document.getElementById('btn-close-auth');
-        if (btnCloseAuth) btnCloseAuth.classList.remove('hidden');
-        authOverlay.classList.remove('hidden');
+        openCompulsoryAuthModal(currentLevelNumber || 1);
       });
     }
 
@@ -1098,9 +1097,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.chronosAuth.logout();
         showFloatingNotification('Signed out of Chronos Chamber.', '#eec06a');
         updateProfileUI();
-        if (currentLevelNumber > 2) {
-          selectLevel(1);
-        }
+        openCompulsoryAuthModal(1);
       });
     }
 
@@ -1162,30 +1159,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           if (res.success) {
             authOverlay.classList.add('hidden');
-            const wasCompulsory = isCompulsoryAuth;
-            const targetLvl = pendingLevelAfterAuth;
+            const targetLvl = pendingLevelAfterAuth || 1;
             isCompulsoryAuth = false;
             pendingLevelAfterAuth = null;
 
             if (compulsoryBanner) compulsoryBanner.classList.add('hidden');
-            if (btnGuest) btnGuest.classList.remove('hidden');
+            if (btnGuest) btnGuest.classList.add('hidden');
             const btnCloseAuth = document.getElementById('btn-close-auth');
             if (btnCloseAuth) btnCloseAuth.classList.remove('hidden');
 
             showFloatingNotification(`Welcome, ${res.user.username}!`, '#10b981');
             updateProfileUI();
 
-            // Sync any completed levels from guest session
+            // Sync any completed levels if present
             await syncGuestProgress(targetLvl);
 
             // Determine level to resume or unlock
             const nextLvl = (window.chronosAuth.user && window.chronosAuth.user.current_level)
               ? window.chronosAuth.user.current_level
-              : (targetLvl || 3);
+              : (targetLvl || 1);
 
             setTimeout(() => {
-              selectLevel(Math.max(nextLvl, targetLvl || 3));
-              showFloatingNotification(`Epoch ${Math.max(nextLvl, targetLvl || 3)} Unlocked! Progress saved.`, '#10b981');
+              selectLevel(Math.min(nextLvl, targetLvl || 1));
+              showFloatingNotification(`Epoch ${Math.min(nextLvl, targetLvl || 1)} Ready! Start your calibration.`, '#10b981');
             }, 300);
           } else {
             authErrorEl.textContent = res.error || 'Authentication failed.';
@@ -1198,28 +1194,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    // Guest Mode Button
+    // Guest Mode Button - Strictly Disabled
     if (btnGuest) {
       btnGuest.addEventListener('click', () => {
-        if (isCompulsoryAuth) {
-          showFloatingNotification('Guest continuation is disabled after Epoch 2. Please sign in or create an account!', '#f59e0b');
-          return;
-        }
-        window.chronosAuth.enableGuestMode();
-        authOverlay.classList.add('hidden');
-        showFloatingNotification('Entered as Guest Calibrator.', '#ffb692');
+        showFloatingNotification('Sign in or account creation is required to play Chronos!', '#f59e0b');
       });
     }
 
     // Close Auth Modal
     function closeAuthModal() {
-      if (isCompulsoryAuth) {
-        showFloatingNotification('Sign in or account creation is required to proceed past Epoch 2!', '#f59e0b');
+      if (!window.chronosAuth.user) {
+        showFloatingNotification('Sign in or account creation is required to play Chronos!', '#f59e0b');
         return;
       }
       authOverlay.classList.add('hidden');
       if (compulsoryBanner) compulsoryBanner.classList.add('hidden');
-      if (btnGuest) btnGuest.classList.remove('hidden');
+      if (btnGuest) btnGuest.classList.add('hidden');
       const btnCloseAuth = document.getElementById('btn-close-auth');
       if (btnCloseAuth) btnCloseAuth.classList.remove('hidden');
     }
@@ -1231,11 +1221,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     authOverlay.addEventListener('click', (e) => {
       if (e.target === authOverlay) {
-        if (isCompulsoryAuth) {
-          showFloatingNotification('Sign in or account creation is required to proceed past Epoch 2!', '#f59e0b');
+        if (!window.chronosAuth.user) {
+          showFloatingNotification('Sign in or account creation is required to play Chronos!', '#f59e0b');
           return;
         }
         closeAuthModal();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !window.chronosAuth.user) {
+        e.preventDefault();
+        showFloatingNotification('Sign in or account creation is required to play Chronos!', '#f59e0b');
       }
     });
 

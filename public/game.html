@@ -735,8 +735,8 @@
       <div class="screwhead absolute bottom-3 left-3 z-30"></div>
       <div class="screwhead absolute bottom-3 right-3 z-30"></div>
 
-      <!-- Close Button -->
-      <button id="btn-close-auth" class="absolute top-3 right-3 z-40 w-7 h-7 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant flex items-center justify-center text-sm font-mono">✕</button>
+      <!-- Close Button (Hidden when not authenticated) -->
+      <button id="btn-close-auth" class="absolute top-3 right-3 z-40 w-7 h-7 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant flex items-center justify-center text-sm font-mono hidden">✕</button>
 
       <!-- Left Column: Hero & Specs -->
       <div class="md:w-5/12 bg-surface-container p-6 sm:p-8 border-b md:border-b-0 md:border-r border-outline-variant/40 flex flex-col justify-between">
@@ -766,7 +766,7 @@
           </div>
         </div>
 
-        <button id="btn-modal-guest" class="w-full py-2 rounded border border-primary/30 bg-surface-container-low hover:bg-surface-container-high text-primary font-mono text-xs flex items-center justify-center gap-2 transition-colors">
+        <button id="btn-modal-guest" class="hidden w-full py-2 rounded border border-primary/30 bg-surface-container-low hover:bg-surface-container-high text-primary font-mono text-xs flex items-center justify-center gap-2 transition-colors">
           <span class="material-symbols-outlined text-sm">tune</span>
           <span>Continue as Guest / Sandbox Mode</span>
         </button>
@@ -789,16 +789,16 @@
 
           <div class="mb-4">
             <h3 id="modal-form-heading" class="font-headline text-base font-bold text-on-surface">Enter Time Chamber</h3>
-            <p class="font-mono text-[10px] text-on-surface-variant">Sign in with institutional handle or email.</p>
+            <p class="font-mono text-[10px] text-on-surface-variant">Sign in or register to calibrate the dial and play.</p>
           </div>
 
           <!-- Compulsory Barrier Notice -->
-          <div id="modal-compulsory-banner" class="hidden mb-4 p-3.5 rounded-xl bg-primary/10 border-2 border-primary/60 text-primary-fixed font-mono text-[11px] shadow-lg flex items-start gap-3">
+          <div id="modal-compulsory-banner" class="mb-4 p-3.5 rounded-xl bg-primary/10 border-2 border-primary/60 text-primary-fixed font-mono text-[11px] shadow-lg flex items-start gap-3">
             <span class="material-symbols-outlined text-lg text-primary shrink-0 mt-0.5">lock</span>
             <div>
-              <div class="font-bold text-primary tracking-wide text-xs">Epoch 2 Solved! Authentication Required</div>
+              <div class="font-bold text-primary tracking-wide text-xs">Sign In Required to Play</div>
               <div class="text-[10px] text-on-surface-variant mt-1 leading-relaxed">
-                Congratulations on conquering Epochs 1 & 2! To unlock Epoch 3 and continue your horological journey, please sign in or create an account. Your progress will be permanently saved.
+                Authentication is required to enter the Chronos Chamber. Please sign in or create an account to start playing. Your progress, unlocked epochs, and high scores will be permanently saved.
               </div>
             </div>
           </div>

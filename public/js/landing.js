@@ -86,13 +86,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await checkInitialAuth();
 
-  // Play as Guest Action
+  // Enter Chamber Action - Compulsory Auth Enforced
   function handlePlayAsGuest() {
-    if (window.chronosAuth) {
-      window.chronosAuth.enableGuestMode();
+    if (window.chronosAuth && window.chronosAuth.user) {
+      window.location.href = '/game';
+    } else {
+      openAuthModal('signin');
     }
-    // Launch directly into the game chamber
-    window.location.href = '/game';
   }
 
   // Open Auth Modal
