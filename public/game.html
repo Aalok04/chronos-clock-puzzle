@@ -54,12 +54,12 @@
   
   <link rel="stylesheet" href="/css/style.css"/>
 </head>
-<body class="bg-surface-container-lowest text-on-surface min-h-screen overflow-x-hidden font-headline select-none flex flex-col">
+<body class="bg-surface-container-lowest text-on-surface h-screen min-h-screen lg:h-screen lg:overflow-hidden overflow-x-hidden font-headline select-none flex flex-col">
 
   <!-- ========================================================================= -->
   <!-- 1. TOP APP BAR                                                            -->
   <!-- ========================================================================= -->
-  <header class="flex flex-wrap justify-between items-center w-full px-3 sm:px-6 py-2 sm:py-3 border-b border-outline-variant/30 bg-surface-container-lowest shadow-[0_8px_24px_rgba(0,0,0,0.8)] z-40 shrink-0">
+  <header class="flex flex-wrap justify-between items-center w-full px-3 sm:px-6 py-1.5 sm:py-2 border-b border-outline-variant/30 bg-surface-container-lowest shadow-[0_8px_24px_rgba(0,0,0,0.8)] z-40 shrink-0">
     <div class="flex items-center gap-2 sm:gap-3 min-w-0">
       <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-surface-container-high border border-primary/40 flex items-center justify-center shadow-inner shrink-0">
         <span class="material-symbols-outlined text-primary text-[18px] sm:text-[20px] spin-slow">settings</span>
@@ -99,7 +99,7 @@
 
       <!-- Player Profile Container -->
       <div id="user-profile-bar" class="hidden flex items-center gap-2 sm:gap-3 pl-1.5 sm:pl-2 border-l border-outline-variant/40">
-        <div class="hidden xs:flex flex-col text-right">
+        <div class="flex flex-col text-right">
           <span id="player-username" class="font-mono text-xs font-bold text-primary truncate max-w-[80px]">TimeKeeper</span>
           <span id="player-rank" class="font-mono text-[10px] text-secondary">Apprentice</span>
         </div>
@@ -119,7 +119,7 @@
   <!-- ========================================================================= -->
   <!-- 2. STATUS HUD BAR                                                         -->
   <!-- ========================================================================= -->
-  <section class="w-full bg-surface-container-low border-b border-outline-variant/30 px-3 sm:px-6 py-2 sm:py-2.5 shadow-md z-30">
+  <section class="w-full bg-surface-container-low border-b border-outline-variant/30 px-3 sm:px-6 py-1.5 sm:py-2 shadow-md z-30">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 sm:gap-4 font-mono">
       <!-- Checkpoints -->
       <div class="flex items-center gap-2 sm:gap-4 flex-wrap">
@@ -176,10 +176,10 @@
   <!-- ========================================================================= -->
   <!-- 3. MAIN WORKSPACE (SideNav + Clock Arena + Details Panel)                  -->
   <!-- ========================================================================= -->
-  <main class="flex-1 flex flex-col lg:flex-row w-full relative overflow-hidden bg-guilloche">
+  <main class="flex-1 min-h-0 flex flex-col lg:flex-row w-full relative overflow-y-auto lg:overflow-hidden bg-guilloche">
     
     <!-- LEFT SIDEBAR: Level Selector (Order 3 on mobile, Order 1 on Desktop) -->
-    <aside class="order-3 lg:order-1 w-full lg:w-64 border-t lg:border-t-0 lg:border-r border-outline-variant/30 p-3 sm:p-4 shrink-0 bg-surface-container-low shadow-[8px_0_24px_rgba(0,0,0,0.7)] z-20 flex flex-col justify-between overflow-y-auto">
+    <aside class="order-3 lg:order-1 w-full lg:w-64 border-t lg:border-t-0 lg:border-r border-outline-variant/30 p-2.5 sm:p-3 shrink-0 bg-surface-container-low shadow-[8px_0_24px_rgba(0,0,0,0.7)] z-20 flex flex-col justify-between overflow-y-auto max-h-full">
       <div>
         <div class="flex items-center gap-3 pb-3 mb-3 border-b border-outline-variant/30 font-mono">
           <div class="w-8 h-8 rounded bg-surface-container-highest border border-primary/40 flex items-center justify-center text-primary shadow-inner">
@@ -219,11 +219,11 @@
     </aside>
 
     <!-- CENTER CLOCKWORK ARENA -->
-    <section class="order-1 lg:order-2 flex-1 flex flex-col items-center justify-center p-2 sm:p-3 relative overflow-hidden">
+    <section class="order-1 lg:order-2 flex-1 min-h-0 flex flex-col items-center justify-start p-1 sm:p-2 pt-1 sm:pt-1 relative overflow-y-auto">
 
 
       <!-- MISSION TARGET & INTUITIVE FORMULA BANNER -->
-      <div id="mission-formula-card" class="w-full max-w-xl mb-2.5 p-2.5 sm:p-3 bg-surface-container-low/95 rounded-xl border border-primary/40 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-2.5 font-mono text-xs transition-all">
+      <div id="mission-formula-card" class="w-full max-w-lg mb-1 p-1.5 sm:p-2 bg-surface-container-low/95 rounded-lg border border-primary/40 shadow-md flex flex-col sm:flex-row items-center justify-between gap-1.5 font-mono text-xs transition-all">
         <div class="flex items-center gap-2.5 w-full sm:w-auto">
           <div class="w-7 h-7 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary font-bold text-xs shrink-0">
             🎯
@@ -252,7 +252,7 @@
       </div>
 
       <!-- Expandable Solution Hint Box -->
-      <div id="hint-box" class="w-full max-w-xl mb-2.5 p-3 rounded-lg bg-primary-container/20 border border-primary/50 text-on-surface font-mono text-[11px] hidden transition-all shadow-md">
+      <div id="hint-box" class="w-full max-w-xl mb-1.5 p-2.5 rounded-lg bg-primary-container/20 border border-primary/50 text-on-surface font-mono text-[11px] hidden transition-all shadow-md">
         <div class="flex items-start justify-between gap-2">
           <div class="flex items-start gap-2">
             <span class="material-symbols-outlined text-primary text-base shrink-0">info</span>
@@ -267,10 +267,10 @@
       </div>
 
       <!-- Friend Duel / Custom Challenge Banner -->
-      <div id="friend-challenge-banner" class="w-full max-w-sm sm:max-w-xl mb-2.5 p-3 rounded-lg bg-amber-950/85 border-2 border-primary text-on-surface font-mono text-xs hidden transition-all shadow-xl"></div>
+      <div id="friend-challenge-banner" class="w-full max-w-sm sm:max-w-xl mb-1.5 p-2.5 rounded-lg bg-amber-950/85 border-2 border-primary text-on-surface font-mono text-xs hidden transition-all shadow-xl"></div>
 
       <!-- In-Game Guided Walkthrough Step Banner (Hidden by default) -->
-      <div id="walkthrough-banner" class="w-full max-w-xl mb-2.5 p-3 rounded-lg bg-amber-950/80 border-2 border-primary text-on-surface font-mono text-xs hidden transition-all shadow-xl">
+      <div id="walkthrough-banner" class="w-full max-w-xl mb-1.5 p-2.5 rounded-lg bg-amber-950/80 border-2 border-primary text-on-surface font-mono text-xs hidden transition-all shadow-xl">
         <div class="flex items-start justify-between gap-3">
           <div class="flex items-start gap-2">
             <span class="material-symbols-outlined text-primary text-lg animate-bounce shrink-0">school</span>
@@ -288,7 +288,7 @@
       </div>
 
       <!-- THE PRECISION ANALOGUE CLOCK (Scales to viewport height to ensure single-screen fit) -->
-      <div id="clock-chassis" class="relative w-[260px] h-[260px] xs:w-[300px] xs:h-[300px] sm:w-[360px] sm:h-[360px] lg:w-[min(54vh,430px)] lg:h-[min(54vh,430px)] max-w-[92vw] aspect-square rounded-full p-2 sm:p-3 shadow-2xl clock-bezel-shadow bg-surface-container-lowest border-4 border-outline-variant/60 coin-edge-border flex items-center justify-center transition-transform select-none">
+      <div id="clock-chassis" class="relative w-[250px] h-[250px] xs:w-[280px] xs:h-[280px] sm:w-[330px] sm:h-[330px] lg:w-[min(48vh,390px)] lg:h-[min(48vh,390px)] max-w-[90vw] aspect-square rounded-full p-1.5 sm:p-2 shadow-2xl clock-bezel-shadow bg-surface-container-lowest border-4 border-outline-variant/60 coin-edge-border flex items-center justify-center transition-transform select-none">
         
         <!-- ========================================== -->
 <!-- 600x600 HAUTE HORLOGERIE MASTER DIAL SVG   -->
@@ -602,7 +602,7 @@
     </section>
 
     <!-- RIGHT SIDEBAR: Time Pin Matrix & Horology Rules (Order 2 on mobile, Order 3 on Desktop) -->
-    <aside class="order-2 lg:order-3 w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-outline-variant/30 p-3 sm:p-4 shrink-0 bg-surface-container-low flex flex-col justify-between shadow-[-8px_0_24px_rgba(0,0,0,0.7)] z-20 overflow-y-auto">
+    <aside class="order-2 lg:order-3 w-full lg:w-80 border-t lg:border-t-0 lg:border-l border-outline-variant/30 p-2.5 sm:p-3 shrink-0 bg-surface-container-low flex flex-col justify-between shadow-[-8px_0_24px_rgba(0,0,0,0.7)] z-20 overflow-y-auto max-h-full">
       <div class="space-y-3">
         <!-- 9-PIN INVENTORY TRAY (PLACED IN SIDE PANEL FOR DIRECT DRAG-AND-DROP TO CLOCK) -->
         <div id="inventory-tray-container" class="w-full bg-surface-container-lowest p-3 rounded-xl border border-outline-variant/50 shadow-md">
@@ -793,11 +793,13 @@
           </div>
 
           <!-- Compulsory Barrier Notice -->
-          <div id="modal-compulsory-banner" class="hidden mb-4 p-3 rounded bg-amber-500/15 border border-amber-500/50 text-amber-200 font-mono text-[11px] flex items-start gap-2">
-            <span class="material-symbols-outlined text-base text-amber-400 shrink-0 mt-0.5">lock</span>
+          <div id="modal-compulsory-banner" class="hidden mb-4 p-3.5 rounded-xl bg-primary/10 border-2 border-primary/60 text-primary-fixed font-mono text-[11px] shadow-lg flex items-start gap-3">
+            <span class="material-symbols-outlined text-lg text-primary shrink-0 mt-0.5">lock</span>
             <div>
-              <div class="font-bold text-amber-300">Epoch 2 Solved! Account Required</div>
-              <div class="text-[10px] text-on-surface-variant mt-0.5">Create an account or sign in to save your victories and unlock Epoch 3 and all higher levels!</div>
+              <div class="font-bold text-primary tracking-wide text-xs">Epoch 2 Solved! Authentication Required</div>
+              <div class="text-[10px] text-on-surface-variant mt-1 leading-relaxed">
+                Congratulations on conquering Epochs 1 & 2! To unlock Epoch 3 and continue your horological journey, please sign in or create an account. Your progress will be permanently saved.
+              </div>
             </div>
           </div>
 

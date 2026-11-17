@@ -16,6 +16,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Prevent aggressive caching of HTML documents to ensure UI updates apply immediately
+app.use((req, res, next) => {
+  if (req.path.endsWith('.html') || req.path === '/game' || req.path === '/play' || req.path === '/' || req.path === '/admin') {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
+
 // Serve static frontend assets from public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
