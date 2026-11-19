@@ -1,11 +1,15 @@
 /**
- * CHRONOS: Authentication & Researcher Session Manager
+ * CHRONOS: Authentication & Permanent Researcher Session Manager
  */
 
 class ChronosAuth {
   constructor() {
     this.token = localStorage.getItem('chronos_token');
     this.user = null;
+    try {
+      const cached = localStorage.getItem('chronos_user');
+      if (cached) this.user = JSON.parse(cached);
+    } catch (e) {}
     this.isGuest = false;
     this.onUserChangeCallbacks = [];
   }
@@ -18,10 +22,32 @@ class ChronosAuth {
     this.onUserChangeCallbacks.forEach(fn => fn(this.user, this.isGuest));
   }
 
+  saveSession(token, user) {
+    this.token = token;
+    this.user = user;
+    this.isGuest = false;
+    if (token) {
+      localStorage.setItem('chronos_token', token);
+    }
+    if (user) {
+      localStorage.setItem('chronos_user', JSON.stringify(user));
+      if (user.email) {
+        localStorage.setItem('chronos_known_email', user.email);
+      }
+      if (user.username) {
+        localStorage.setItem('chronos_known_username', user.username);
+      }
+      localStorage.setItem('chronos_returning_user', 'true');
+    }
+    localStorage.removeItem('chronos_guest');
+  }
+
   async checkSession() {
+    this.token = localStorage.getItem('chronos_token');
     if (!this.token) {
       this.user = null;
       this.isGuest = false;
+      localStorage.removeItem('chronos_user');
       localStorage.removeItem('chronos_guest');
       this.notifyUserChange();
       return null;
@@ -35,16 +61,16 @@ class ChronosAuth {
       });
       const data = await res.json();
       if (data.success && data.user) {
-        this.user = data.user;
-        this.isGuest = false;
+        this.saveSession(this.token, data.user);
         this.notifyUserChange();
         return this.user;
-      } else {
+      } else if (res.status === 401 || res.status === 403 || res.status === 404) {
         this.logout();
         return null;
       }
+      return this.user;
     } catch (err) {
-      console.warn('Session verification offline, retaining local profile.');
+      console.warn('Session verification offline, retaining saved local profile.');
       return this.user;
     }
   }
@@ -57,11 +83,7 @@ class ChronosAuth {
     });
     const data = await res.json();
     if (data.success) {
-      this.token = data.token;
-      this.user = data.user;
-      this.isGuest = false;
-      localStorage.setItem('chronos_token', this.token);
-      localStorage.removeItem('chronos_guest');
+      this.saveSession(data.token, data.user);
       this.notifyUserChange();
     }
     return data;
@@ -75,11 +97,7 @@ class ChronosAuth {
     });
     const data = await res.json();
     if (data.success) {
-      this.token = data.token;
-      this.user = data.user;
-      this.isGuest = false;
-      localStorage.setItem('chronos_token', this.token);
-      localStorage.removeItem('chronos_guest');
+      this.saveSession(data.token, data.user);
       this.notifyUserChange();
     }
     return data;
@@ -98,6 +116,7 @@ class ChronosAuth {
     this.user = null;
     this.isGuest = false;
     localStorage.removeItem('chronos_token');
+    localStorage.removeItem('chronos_user');
     localStorage.removeItem('chronos_guest');
     this.notifyUserChange();
   }

@@ -5,18 +5,58 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { authenticateToken, JWT_SECRET } = require('../middleware/auth');
 
-// POST /api/auth/signup - Create archive account
+function parseJsonArray(val) {
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string' && val.trim()) {
+    try {
+      const parsed = JSON.parse(val);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  return [];
+}
+
+function buildUserResponse(user, profile) {
+  const completedLevels = parseJsonArray(profile.completed_levels);
+  const puzzlesSolved = Math.max(Number(profile.puzzles_solved) || 0, completedLevels.length);
+  const maxCompleted = completedLevels.length > 0 ? Math.max(...completedLevels) : 0;
+  const currentLevel = Math.min(15, Math.max(1, Number(profile.current_level) || 1));
+  const unlockedLevel = Math.min(15, Math.max(1, Number(profile.unlocked_level) || 1, currentLevel, maxCompleted + 1, puzzlesSolved + 1));
+  const rankTitle = profile.rank_title || db.calculateRank(puzzlesSolved);
+  const achievements = parseJsonArray(profile.achievements).length > 0
+    ? parseJsonArray(profile.achievements)
+    : db.calculateAchievements(completedLevels);
+
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    role: user.role || 'student',
+    status: user.status || 'Active',
+    created_at: user.created_at,
+    last_login_at: user.last_login_at || user.created_at,
+    rank_title: rankTitle,
+    puzzles_solved: puzzlesSolved,
+    current_level: currentLevel,
+    unlocked_level: unlockedLevel,
+    completed_levels: completedLevels,
+    achievements
+  };
+}
+
+// POST /api/auth/signup - Create permanent player account
 router.post('/signup', async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    // Validation
     if (!username || !email || !password) {
       return res.status(400).json({ success: false, error: 'All fields (username, email, password) are required.' });
     }
 
-    const cleanUsername = username.trim();
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanUsername = String(username).trim();
+    const cleanEmail = String(email).trim().toLowerCase();
 
     if (cleanUsername.length < 3 || cleanUsername.length > 40) {
       return res.status(400).json({ success: false, error: 'Username must be between 3 and 40 characters.' });
@@ -26,11 +66,11 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Please enter a valid email address.' });
     }
 
-    if (password.length < 6) {
+    if (String(password).length < 6) {
       return res.status(400).json({ success: false, error: 'Password must be at least 6 characters long.' });
     }
 
-    // Check existing
+    // Check existing by username or email (case-insensitive)
     const existingUsers = await db.query(
       'SELECT id, username, email FROM users WHERE username = ? OR email = ?',
       [cleanUsername, cleanEmail]
@@ -38,49 +78,71 @@ router.post('/signup', async (req, res) => {
 
     if (existingUsers && existingUsers.length > 0) {
       const match = existingUsers[0];
-      if (match.username.toLowerCase() === cleanUsername.toLowerCase()) {
-        return res.status(409).json({ success: false, error: 'This username is already registered.' });
+      if (String(match.email || '').toLowerCase() === cleanEmail) {
+        return res.status(409).json({
+          success: false,
+          code: 'ACCOUNT_EXISTS',
+          error: 'An account with this email already exists. Please switch to Sign In to access your account.'
+        });
       }
-      return res.status(409).json({ success: false, error: 'An account with this email already exists.' });
+      if (String(match.username || '').toLowerCase() === cleanUsername.toLowerCase()) {
+        return res.status(409).json({
+          success: false,
+          code: 'USERNAME_EXISTS',
+          error: 'This username is already registered. Please sign in if this is your account, or choose another username.'
+        });
+      }
     }
 
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, 10);
+    // Securely hash password with bcrypt
+    const passwordHash = await bcrypt.hash(String(password), 10);
 
-    // Insert user
+    // Permanently insert user record
     const userResult = await db.query(
       'INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
       [cleanUsername, cleanEmail, passwordHash, 'student']
     );
 
     const userId = userResult.insertId;
+    const nowIso = new Date().toISOString();
 
-    // Insert default profile
+    // Permanently insert initial user profile
     await db.query(
       'INSERT INTO user_profiles (user_id, rank_title, puzzles_solved, current_level) VALUES (?, ?, ?, ?)',
       [userId, 'Apprentice Chronomancer', 0, 1]
     );
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: userId, username: cleanUsername, email: cleanEmail, role: 'student' },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const profile = db.getReconciledUserProfile(userId);
+    const userObj = {
+      id: userId,
+      username: cleanUsername,
+      email: cleanEmail,
+      role: 'student',
+      status: 'Active',
+      created_at: nowIso,
+      last_login_at: nowIso
+    };
 
-    return res.status(201).json({
-      success: true,
-      message: 'Archive account forged successfully.',
-      token,
-      user: {
+    // Generate long-lived JWT token (30 days)
+    const token = jwt.sign(
+      {
         id: userId,
         username: cleanUsername,
         email: cleanEmail,
         role: 'student',
-        rank_title: 'Apprentice Chronomancer',
-        puzzles_solved: 0,
-        current_level: 1
-      }
+        status: 'Active',
+        created_at: nowIso,
+        password_hash: passwordHash
+      },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: 'Account registered and saved permanently.',
+      token,
+      user: buildUserResponse(userObj, profile)
     });
   } catch (err) {
     console.error('[Auth Signup Error]:', err);
@@ -88,67 +150,84 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// POST /api/auth/login - Authenticate with handle/email and passkey
+// POST /api/auth/login - Authenticate returning user with email/username and password
 router.post('/login', async (req, res) => {
   try {
-    const { handle, password } = req.body;
+    const rawIdentifier = req.body.handle || req.body.email || req.body.username || '';
+    const { password } = req.body;
 
-    if (!handle || !password) {
-      return res.status(400).json({ success: false, error: 'Username/email and password are required.' });
+    if (!rawIdentifier || !password) {
+      return res.status(400).json({ success: false, error: 'Email (or username) and password are required.' });
     }
 
-    const cleanHandle = handle.trim();
+    const cleanHandle = String(rawIdentifier).trim();
 
-    // Query user by handle (username) or email
+    // Query user by username or email
     const users = await db.query(
-      'SELECT id, username, email, password_hash, role FROM users WHERE username = ? OR email = ?',
+      'SELECT id, username, email, password_hash, role, status, created_at, last_login_at FROM users WHERE username = ? OR email = ?',
       [cleanHandle, cleanHandle.toLowerCase()]
     );
 
     if (!users || users.length === 0) {
-      return res.status(401).json({ success: false, error: 'Invalid username/email or password.' });
+      return res.status(401).json({ success: false, error: 'Invalid email/username or password.' });
     }
 
     const user = users[0];
 
-    // Verify bcrypt hash
-    const isMatch = await bcrypt.compare(password, user.password_hash);
-    if (!isMatch) {
-      return res.status(401).json({ success: false, error: 'Invalid username/email or password.' });
+    if (String(user.status || 'Active').toLowerCase() === 'disabled') {
+      return res.status(403).json({
+        success: false,
+        error: 'This account has been disabled by an administrator. Please contact support.'
+      });
     }
 
-    // Get user profile
+    // Verify bcrypt password hash
+    const isMatch = await bcrypt.compare(String(password), user.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, error: 'Invalid email/username or password.' });
+    }
+
+    // Update last login date in permanent storage
+    const nowIso = new Date().toISOString();
+    try {
+      await db.query('UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
+      user.last_login_at = nowIso;
+    } catch (e) {}
+
+    // Retrieve & reconcile saved game progress
     const profiles = await db.query(
       'SELECT rank_title, puzzles_solved, current_level FROM user_profiles WHERE user_id = ?',
       [user.id]
     );
-
-    const profile = profiles[0] || {
-      rank_title: 'Apprentice Chronomancer',
-      puzzles_solved: 0,
-      current_level: 1
+    const reconciledProfile = db.getReconciledUserProfile(user.id);
+    const profile = {
+      ...reconciledProfile,
+      ...(profiles && profiles[0] ? {
+        puzzles_solved: Math.max(Number(profiles[0].puzzles_solved) || 0, reconciledProfile.puzzles_solved || 0),
+        current_level: Math.max(Number(profiles[0].current_level) || 1, reconciledProfile.current_level || 1)
+      } : {})
     };
 
-    // Issue token
+    // Issue 30-day token
     const token = jwt.sign(
-      { id: user.id, username: user.username, email: user.email, role: user.role },
+      {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role || 'student',
+        status: user.status || 'Active',
+        created_at: user.created_at,
+        password_hash: user.password_hash
+      },
       JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '30d' }
     );
 
     return res.json({
       success: true,
-      message: 'Temporal Chamber unlocked successfully.',
+      message: 'Welcome back! Your saved progress has been restored.',
       token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        rank_title: profile.rank_title,
-        puzzles_solved: profile.puzzles_solved,
-        current_level: profile.current_level
-      }
+      user: buildUserResponse(user, profile)
     });
   } catch (err) {
     console.error('[Auth Login Error]:', err);
@@ -156,42 +235,43 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// GET /api/auth/me - Verify current session
+// GET /api/auth/me - Verify current session and restore saved game progress
 router.get('/me', authenticateToken, async (req, res) => {
   try {
-    const users = await db.query(
-      'SELECT id, username, email, role, created_at FROM users WHERE id = ?',
+    // Ensure account exists in permanent store if valid signed token arrives
+    db.ensureUserFromToken(req.user);
+
+    let users = await db.query(
+      'SELECT id, username, email, role, status, created_at, last_login_at FROM users WHERE id = ?',
       [req.user.id]
     );
 
+    if ((!users || users.length === 0) && req.user.email) {
+      users = await db.query(
+        'SELECT id, username, email, role, status, created_at, last_login_at FROM users WHERE email = ?',
+        [String(req.user.email).toLowerCase()]
+      );
+    }
+
     if (!users || users.length === 0) {
-      return res.status(404).json({ success: false, error: 'Researcher record not found.' });
+      return res.status(404).json({ success: false, code: 'USER_NOT_FOUND', error: 'Account record not found.' });
     }
 
     const user = users[0];
-    const profiles = await db.query(
-      'SELECT rank_title, puzzles_solved, current_level FROM user_profiles WHERE user_id = ?',
-      [user.id]
-    );
 
-    const profile = profiles[0] || {
-      rank_title: 'Apprentice Chronomancer',
-      puzzles_solved: 0,
-      current_level: 1
-    };
+    if (String(user.status || 'Active').toLowerCase() === 'disabled') {
+      return res.status(403).json({
+        success: false,
+        code: 'ACCOUNT_DISABLED',
+        error: 'This account has been disabled by an administrator.'
+      });
+    }
+
+    const reconciledProfile = db.getReconciledUserProfile(user.id);
 
     return res.json({
       success: true,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        rank_title: profile.rank_title,
-        puzzles_solved: profile.puzzles_solved,
-        current_level: profile.current_level,
-        created_at: user.created_at
-      }
+      user: buildUserResponse(user, reconciledProfile)
     });
   } catch (err) {
     console.error('[Auth Me Error]:', err);

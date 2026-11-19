@@ -173,7 +173,7 @@ class ClockEngine {
   loop(timestamp) {
     if (this.state !== 'RUNNING') return;
 
-    const deltaMs = Math.min(timestamp - this.lastFrameTimestamp, 100);
+    const deltaMs = Math.max(0, Math.min(timestamp - this.lastFrameTimestamp, 100));
     this.lastFrameTimestamp = timestamp;
 
     // Rate: 1 second real time = 5 minutes game time at 1x
@@ -181,31 +181,46 @@ class ClockEngine {
     const advanceMinutes = deltaMs * gameMinutesPerMs;
 
     // Ensure we do not overshoot the remaining duration
-    const remainingDuration = this.runningDurationMins - this.elapsedDurationMins;
+    const remainingDuration = Math.max(0, this.runningDurationMins - this.elapsedDurationMins);
     const actualAdvance = Math.min(advanceMinutes, remainingDuration);
 
     const prevDisplayedTime = this.displayedTimeMins;
     const prevElapsedDuration = this.elapsedDurationMins;
+    const nextDisplayedTime = prevDisplayedTime + actualAdvance;
 
-    // Advance accumulators
-    this.displayedTimeMins += actualAdvance;
-    this.elapsedDurationMins += actualAdvance;
-
-    // Check collisions across the swept interval
-    const hitPin = this.detectPinCollision(prevDisplayedTime, this.displayedTimeMins);
+    // Check collisions across the swept interval (prevDisplayedTime, nextDisplayedTime]
+    const hitPin = actualAdvance > 0
+      ? this.detectPinCollision(prevDisplayedTime, nextDisplayedTime)
+      : null;
 
     if (hitPin) {
-      // Reached a pin: pause normal movement and trigger activation pipeline
+      // Snap hand and elapsed duration to the exact moment the hand reaches the socket
+      const timeToPin = Math.max(0, hitPin.triggerTime - prevDisplayedTime);
+      this.displayedTimeMins = hitPin.triggerTime;
+      this.elapsedDurationMins = Math.min(this.runningDurationMins, prevElapsedDuration + timeToPin);
+
+      // Pause normal movement and trigger activation at this exact socket position
       this.state = 'PIN_PAUSED';
-      if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+      if (this.animationFrameId) {
+        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = null;
+      }
+
+      // Render hand at the exact socket angular position before applying warp transition
+      this.notifyTick(false, false, 'forward');
+
       this.executePinActivation(hitPin);
       return;
     }
 
-    this.notifyTick();
+    // Advance accumulators
+    this.displayedTimeMins = nextDisplayedTime;
+    this.elapsedDurationMins = prevElapsedDuration + actualAdvance;
+
+    this.notifyTick(false, false, 'forward');
 
     // Check if running duration is complete
-    if (this.elapsedDurationMins >= this.runningDurationMins) {
+    if (this.elapsedDurationMins >= this.runningDurationMins - 1e-7) {
       this.finishRun();
       return;
     }
@@ -213,46 +228,89 @@ class ClockEngine {
     this.animationFrameId = requestAnimationFrame(this.loop);
   }
 
-  // Sweep collision detector
+  // Sweep collision detector: finds the chronologically first pin reached in (prevTime, currTime]
   detectPinCollision(prevTime, currTime) {
+    if (currTime <= prevTime) return null;
+
+    const EPS = 1e-7;
+    const candidates = [];
+
     // Check Outer Ring Sockets: Minute Hand triggers them
-    // Outer socket i is at (i * 5) minutes (i = 0..11)
+    // Outer socket i is at (i * 5) minutes (i = 0..11) -> exact angle i * 30 deg
     for (let i = 0; i < 12; i++) {
       const pin = this.sockets.outer[i];
       if (pin && !pin.hasTriggered) {
-        const socketMinute = i * 5; // e.g. 0, 5, 10, ... 55
-        if (this.isMinuteMarkerCrossed(prevTime, currTime, socketMinute)) {
-          return { pin, circle: 'outer', index: i };
+        const socketMinute = i * 5; // 0, 5, 10, ... 55
+        const triggerTime = this.getFirstCrossingTime(prevTime, currTime, socketMinute, 60, EPS);
+        if (triggerTime !== null) {
+          candidates.push({ pin, circle: 'outer', index: i, triggerTime });
         }
       }
     }
 
     // Check Inner Ring Sockets: Hour Hand triggers them
-    // Inner socket i is at hour (i === 11 ? 12 : i + 1), i.e. 1..12 hours
+    // Inner socket i is at hour (i + 1), i.e. 1..12 hours -> ((i + 1) % 12) * 60 minutes
     for (let i = 0; i < 12; i++) {
       const pin = this.sockets.inner[i];
       if (pin && !pin.hasTriggered) {
-        const socketHour = (i + 1); // 1, 2, ..., 12
+        const socketHour = i + 1; // 1, 2, ..., 12
         const socketMinutesFromMidnight = (socketHour % 12) * 60;
-        if (this.isHourMarkerCrossed(prevTime, currTime, socketMinutesFromMidnight)) {
-          return { pin, circle: 'inner', index: i };
+        const triggerTime = this.getFirstCrossingTime(prevTime, currTime, socketMinutesFromMidnight, 720, EPS);
+        if (triggerTime !== null) {
+          candidates.push({ pin, circle: 'inner', index: i, triggerTime });
         }
       }
     }
 
-    // Mathematical Invariance Fallback: If simulation is within final minutes or any pin was bypassed,
-    // trigger remaining placed pins sequentially so any mathematically valid combination on the rings activates
-    if (this.elapsedDurationMins >= this.runningDurationMins - 2) {
-      for (let i = 0; i < 12; i++) {
-        const pin = this.sockets.inner[i];
-        if (pin && !pin.hasTriggered) {
-          return { pin, circle: 'inner', index: i };
+    if (candidates.length === 0) return null;
+
+    // Sort chronologically by the exact moment the hand reaches each socket.
+    // On an exact tie (both hands hitting :00 simultaneously), trigger inner first
+    // so the hour jump preserves the :00 minute alignment for the outer pin.
+    candidates.sort((a, b) => {
+      const timeDiff = a.triggerTime - b.triggerTime;
+      if (Math.abs(timeDiff) > EPS) return timeDiff;
+      if (a.circle !== b.circle) return a.circle === 'inner' ? -1 : 1;
+      return a.index - b.index;
+    });
+
+    return candidates[0];
+  }
+
+  // Returns the earliest time t in (prevTime, currTime] where ((t % period) + period) % period === targetOffset
+  getFirstCrossingTime(prevTime, currTime, targetOffset, period, eps = 1e-7) {
+    const k = Math.floor(((prevTime + eps) - targetOffset) / period) + 1;
+    const triggerTime = period * k + targetOffset;
+    if (triggerTime <= currTime + eps) {
+      return triggerTime;
+    }
+    return null;
+  }
+
+  // Checks if a hand has physically arrived at the exact angular position of an untriggered pin
+  detectPinAtExactTime(timeMins) {
+    const EPS = 1e-6;
+    const normHourMins = ((timeMins % 720) + 720) % 720;
+    const normMin = ((timeMins % 60) + 60) % 60;
+
+    for (let i = 0; i < 12; i++) {
+      const pin = this.sockets.inner[i];
+      if (pin && !pin.hasTriggered) {
+        const socketMinutes = ((i + 1) % 12) * 60;
+        const diff = Math.abs(normHourMins - socketMinutes);
+        if (diff < EPS || Math.abs(diff - 720) < EPS) {
+          return { pin, circle: 'inner', index: i, triggerTime: timeMins };
         }
       }
-      for (let i = 0; i < 12; i++) {
-        const pin = this.sockets.outer[i];
-        if (pin && !pin.hasTriggered) {
-          return { pin, circle: 'outer', index: i };
+    }
+
+    for (let i = 0; i < 12; i++) {
+      const pin = this.sockets.outer[i];
+      if (pin && !pin.hasTriggered) {
+        const socketMinute = i * 5;
+        const diff = Math.abs(normMin - socketMinute);
+        if (diff < EPS || Math.abs(diff - 60) < EPS) {
+          return { pin, circle: 'outer', index: i, triggerTime: timeMins };
         }
       }
     }
@@ -261,49 +319,19 @@ class ClockEngine {
   }
 
   isMinuteMarkerCrossed(t1, t2, targetMinute) {
-    const m1 = t1 % 60;
-    const m2 = t2 % 60;
-    if (t2 - t1 >= 60) return true; // full revolution swept
-    if (m1 <= m2) {
-      return (m1 <= targetMinute && targetMinute <= m2);
-    } else {
-      // Wrapped around 60 (e.g. 58 -> 02)
-      return (targetMinute >= m1 || targetMinute <= m2);
-    }
+    return this.getFirstCrossingTime(t1, t2, targetMinute, 60) !== null;
   }
 
   isHourMarkerCrossed(t1, t2, targetMins) {
-    const normT1 = ((t1 % 720) + 720) % 720;
-    const normT2 = ((t2 % 720) + 720) % 720;
-    if (t2 - t1 >= 720) return true;
-    if (normT1 <= normT2) {
-      return (normT1 <= targetMins && targetMins <= normT2);
-    } else {
-      return (targetMins >= normT1 || targetMins <= normT2);
-    }
+    return this.getFirstCrossingTime(t1, t2, targetMins, 720) !== null;
   }
 
-  // Pin Activation Sequence (Pre-Pause -> Smooth Hand Warp -> Settling Delay -> Resume)
+  // Pin Activation Sequence: Visually activates at the exact moment its effect is applied
   async executePinActivation(collision) {
     const { pin, circle, index } = collision;
     pin.hasTriggered = true;
 
-    // 1. Mechanical pre-activation delay (Hand stops upon hitting socket)
-    this.onPinActivate({
-      phase: 'PRE_PAUSE',
-      pin,
-      circle,
-      index,
-      displayedTime: this.formatMinutesToTime(this.displayedTimeMins)
-    });
-
-    if (window.chronosAudio) {
-      window.chronosAudio.playPinActivation(pin.deltaMinutes);
-    }
-
-    await this.delay(350);
-
-    // 2. Apply Time Delta:
+    // Apply Time Delta at the exact moment the pin activates:
     // If Outer Ring (Minute Hand): applies fraction of 60 minutes
     //   +1/3 -> 60 / 3 = +20 minutes
     //   -1/4 -> -60 / 4 = -15 minutes
@@ -335,12 +363,17 @@ class ClockEngine {
       displayedTime: this.formatMinutesToTime(this.displayedTimeMins)
     });
 
+    if (window.chronosAudio) {
+      window.chronosAudio.playPinActivation(pin.deltaMinutes);
+    }
+
     this.notifyTick(true, false, timeAdjustment < 0 ? 'backward' : 'forward'); // Smooth transition flag (0.6s CSS transition)
 
     // Wait for the hands to smoothly travel and reach their target positions
     await this.delay(600);
+    if (this.state !== 'PIN_PAUSED') return;
 
-    // 3. Post-activation mechanical settling pause (Hands hold still at new position)
+    // Post-activation mechanical settling pause (Hands hold still at new position)
     this.onPinActivate({
       phase: 'SETTLING_PAUSE',
       pin,
@@ -354,7 +387,8 @@ class ClockEngine {
     }
 
     // Delay after reaching trigger time before resuming normal ticking
-    await this.delay(600);
+    await this.delay(350);
+    if (this.state !== 'PIN_PAUSED') return;
 
     this.onPinActivate({
       phase: 'POST_RESUME',
@@ -364,7 +398,21 @@ class ClockEngine {
       displayedTime: this.formatMinutesToTime(this.displayedTimeMins)
     });
 
-    // 4. Resume Normal Movement
+    // If the warped hand has physically arrived at another untriggered pin's exact socket, activate it
+    const landedPin = this.detectPinAtExactTime(this.displayedTimeMins);
+    if (landedPin) {
+      this.notifyTick(false, false, 'forward');
+      this.executePinActivation(landedPin);
+      return;
+    }
+
+    // Check if running duration is already complete
+    if (this.elapsedDurationMins >= this.runningDurationMins - 1e-7) {
+      this.finishRun();
+      return;
+    }
+
+    // Resume Normal Movement
     this.state = 'RUNNING';
     this.lastFrameTimestamp = performance.now();
     this.animationFrameId = requestAnimationFrame(this.loop);

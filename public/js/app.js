@@ -125,6 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Step backwards to target starting angle
       let diff = currentBase - targetBase;
       if (diff < 0) diff += 360;
+      if (Math.abs(diff) < 1e-4 || Math.abs(diff - 360) < 1e-4) diff = 0;
       return currentRotation - diff;
     }
 
@@ -132,12 +133,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Pin warped backwards: rotate strictly counter-clockwise
       let diff = currentBase - targetBase;
       if (diff < 0) diff += 360;
+      if (Math.abs(diff) < 1e-4 || Math.abs(diff - 360) < 1e-4) diff = 0;
       return currentRotation - diff;
     }
 
     // Default / forward: normal tick or forward pin warp: rotate strictly clockwise
     let diff = targetBase - currentBase;
     if (diff < 0) diff += 360;
+    if (Math.abs(diff) < 1e-4 || Math.abs(diff - 360) < 1e-4) diff = 0;
     return currentRotation + diff;
   }
 
@@ -150,12 +153,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Apply hand angles (SVG elements rotate around 300px 300px)
     if (minuteHandEl) {
+      if (smooth || rewind) {
+        void minuteHandEl.offsetWidth;
+      }
       minuteHandEl.setAttribute('class', `clock-hand ${rewind ? 'rewind-transition' : (smooth ? 'smooth-transition' : '')}`);
       minuteHandEl.style.transform = `rotate(${currentMinuteRotation}deg)`;
+      if (!smooth && !rewind) {
+        void minuteHandEl.offsetWidth;
+      }
     }
     if (hourHandEl) {
+      if (smooth || rewind) {
+        void hourHandEl.offsetWidth;
+      }
       hourHandEl.setAttribute('class', `clock-hand ${rewind ? 'rewind-transition' : (smooth ? 'smooth-transition' : '')}`);
       hourHandEl.style.transform = `rotate(${currentHourRotation}deg)`;
+      if (!smooth && !rewind) {
+        void hourHandEl.offsetWidth;
+      }
     }
 
     // Digital Dial Readout & Time Locked Glow
@@ -267,8 +282,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const socketEl = document.querySelector(`.socket-hole[data-circle="${circle}"][data-socket-index="${index}"]`);
 
     if (socketEl) {
-      if (phase === 'PRE_PAUSE') {
-        socketEl.classList.add('pin-activating');
+      if (phase === 'APPLYING') {
+        socketEl.classList.add('pin-activating', 'pin-triggered');
         let triggerMsg = pin.label;
         if (circle === 'inner') {
           if (pin.label === '+1/3' || pin.type === 'forward-high') triggerMsg = '+1/3 (Hour Hand +4h [12/3])';
@@ -280,7 +295,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           else if (pin.label === '+1/6') triggerMsg = '+1/6 (Minute Hand +10m [60/6])';
         }
         showFloatingNotification(`⚡ Pin Engaged: ${triggerMsg}`, pin.bgHex);
-      } else if (phase === 'APPLYING' || phase === 'POST_RESUME') {
+      } else if (phase === 'SETTLING_PAUSE' || phase === 'POST_RESUME') {
         socketEl.classList.remove('pin-activating');
         socketEl.classList.add('pin-triggered');
       }
@@ -353,7 +368,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (resData.updatedProfile && window.chronosAuth.user) {
           window.chronosAuth.user.puzzles_solved = resData.updatedProfile.puzzles_solved;
           window.chronosAuth.user.current_level = resData.updatedProfile.current_level;
+          window.chronosAuth.user.unlocked_level = resData.updatedProfile.unlocked_level;
+          window.chronosAuth.user.completed_levels = resData.updatedProfile.completed_levels;
           window.chronosAuth.user.rank_title = resData.updatedProfile.rank_title;
+          window.chronosAuth.user.achievements = resData.updatedProfile.achievements;
+          if (typeof window.chronosAuth.saveSession === 'function') {
+            window.chronosAuth.saveSession(window.chronosAuth.token, window.chronosAuth.user);
+          }
           updateProfileUI();
         } else if (!window.chronosAuth.user) {
           // Track guest-solved levels so they sync immediately upon signing up or logging in!
@@ -645,9 +666,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function openCompulsoryAuthModal(targetLvl = 1) {
+  function openCompulsoryAuthModal(targetLvl = null) {
     isCompulsoryAuth = true;
-    pendingLevelAfterAuth = targetLvl || 1;
+    pendingLevelAfterAuth = targetLvl;
 
     const compulsoryBanner = document.getElementById('modal-compulsory-banner');
     if (compulsoryBanner) compulsoryBanner.classList.remove('hidden');
@@ -658,8 +679,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnCloseAuth = document.getElementById('btn-close-auth');
     if (btnCloseAuth) btnCloseAuth.classList.add('hidden');
 
+    const knownEmail = localStorage.getItem('chronos_known_email') || '';
+    const isReturningUser = localStorage.getItem('chronos_returning_user') === 'true' || !!knownEmail;
+    const tabSignIn = document.getElementById('modal-tab-signin');
     const tabSignUp = document.getElementById('modal-tab-signup');
-    if (tabSignUp) tabSignUp.click();
+    const handleInput = document.getElementById('modal-handle-input');
+
+    if (isReturningUser && tabSignIn) {
+      tabSignIn.click();
+      if (handleInput && !handleInput.value && knownEmail) {
+        handleInput.value = knownEmail;
+      }
+    } else if (tabSignUp) {
+      tabSignUp.click();
+    }
 
     authOverlay.classList.remove('hidden');
   }
@@ -671,11 +704,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const isCustomActive = currentChallenge && currentChallenge.isCustom;
     const isAuthed = !!window.chronosAuth.user;
+    const completedLevels = (window.chronosAuth.user && Array.isArray(window.chronosAuth.user.completed_levels))
+      ? window.chronosAuth.user.completed_levels.map(Number)
+      : [];
 
     puzzlesList.forEach(p => {
       const btn = document.createElement('button');
       const isCurrent = !isCustomActive && (p.level_number === currentLevelNumber);
       const isLocked = !isAuthed;
+      const isCompleted = isAuthed && completedLevels.includes(Number(p.level_number));
 
       btn.className = `w-full flex items-center justify-between px-3 py-2 transition-all text-label-sm font-label-sm ${
         isCurrent
@@ -687,12 +724,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.innerHTML = `
         <div class="flex items-center gap-2">
           <span class="material-symbols-outlined text-sm ${
-            isCurrent ? 'text-primary' : isLocked ? 'text-outline' : 'text-primary/70'
-          }">${isLocked ? 'lock' : 'lock_open'}</span>
+            isCompleted ? 'text-emerald-400' : (isCurrent ? 'text-primary' : (isLocked ? 'text-outline' : 'text-primary/70'))
+          }">${isLocked ? 'lock' : (isCompleted ? 'check_circle' : 'lock_open')}</span>
           <span>Epoch ${p.level_number}</span>
         </div>
         <div class="flex items-center gap-1.5">
           ${!isAuthed ? `<span class="text-[9px] px-1.5 py-0.2 bg-outline-variant/30 text-outline border border-outline-variant/50 rounded font-mono">Sign In</span>` : ''}
+          ${isCompleted ? `<span class="text-[9px] px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded font-mono font-bold">SOLVED</span>` : ''}
           ${p.max_pins ? `<span class="text-[9px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded font-mono font-bold">${p.max_pins} max</span>` : ''}
           <span class="text-[9px] ${isCurrent ? 'px-1.5 py-0.5 bg-primary/20 rounded text-primary border border-primary/30' : 'text-outline'}">
             ${isCurrent ? 'ACTIVE' : p.target_time}
@@ -1159,7 +1197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           if (res.success) {
             authOverlay.classList.add('hidden');
-            const targetLvl = pendingLevelAfterAuth || 1;
+            const requestedLvl = pendingLevelAfterAuth;
             isCompulsoryAuth = false;
             pendingLevelAfterAuth = null;
 
@@ -1172,19 +1210,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateProfileUI();
 
             // Sync any completed levels if present
-            await syncGuestProgress(targetLvl);
+            await syncGuestProgress(requestedLvl);
 
-            // Determine level to resume or unlock
-            const nextLvl = (window.chronosAuth.user && window.chronosAuth.user.current_level)
-              ? window.chronosAuth.user.current_level
-              : (targetLvl || 1);
+            // Restore returning user's saved current_level from the permanent database
+            const savedLevel = (window.chronosAuth.user && window.chronosAuth.user.current_level)
+              ? Number(window.chronosAuth.user.current_level)
+              : 1;
+            const resumeLvl = (requestedLvl && requestedLvl > 1)
+              ? requestedLvl
+              : savedLevel;
 
             setTimeout(() => {
-              selectLevel(Math.min(nextLvl, targetLvl || 1));
-              showFloatingNotification(`Epoch ${Math.min(nextLvl, targetLvl || 1)} Ready! Start your calibration.`, '#10b981');
+              selectLevel(resumeLvl);
+              showFloatingNotification(`Epoch ${resumeLvl} Ready! Saved progress restored.`, '#10b981');
             }, 300);
           } else {
-            authErrorEl.textContent = res.error || 'Authentication failed.';
+            if (isSignUpMode && res.code === 'ACCOUNT_EXISTS' && tabSignIn) {
+              tabSignIn.click();
+              if (handleInput && email) {
+                handleInput.value = email;
+              }
+              authErrorEl.textContent = 'An account with this email already exists! Switched to Sign In — please enter your password.';
+            } else {
+              authErrorEl.textContent = res.error || 'Authentication failed.';
+            }
             authErrorEl.classList.remove('hidden');
           }
         } catch (err) {

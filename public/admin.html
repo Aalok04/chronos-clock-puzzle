@@ -211,13 +211,13 @@
     <!-- B. TAB NAVIGATION HEADER -->
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant/50 pb-2">
       <nav class="flex items-center gap-2 overflow-x-auto pb-1" id="admin-tabs">
-        <button data-tab="live" class="admin-tab-btn active px-4 py-2 rounded-lg bg-primary/20 text-primary border border-primary font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all">
-          <span class="material-symbols-outlined text-[16px]">stream</span>
-          Live Stream
-        </button>
-        <button data-tab="users" class="admin-tab-btn px-4 py-2 rounded-lg bg-surface-container-high text-on-surface-variant border border-outline-variant/40 hover:text-on-surface font-mono text-xs font-semibold uppercase tracking-wider flex items-center gap-2 transition-all">
+        <button data-tab="users" class="admin-tab-btn active px-4 py-2 rounded-lg bg-primary/20 text-primary border border-primary font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all">
           <span class="material-symbols-outlined text-[16px]">manage_accounts</span>
           Scholar Accounts
+        </button>
+        <button data-tab="live" class="admin-tab-btn px-4 py-2 rounded-lg bg-surface-container-high text-on-surface-variant border border-outline-variant/40 hover:text-on-surface font-mono text-xs font-semibold uppercase tracking-wider flex items-center gap-2 transition-all">
+          <span class="material-symbols-outlined text-[16px]">stream</span>
+          Live Stream
         </button>
         <button data-tab="feedback" class="admin-tab-btn px-4 py-2 rounded-lg bg-surface-container-high text-on-surface-variant border border-outline-variant/40 hover:text-on-surface font-mono text-xs font-semibold uppercase tracking-wider flex items-center gap-2 transition-all">
           <span class="material-symbols-outlined text-[16px]">reviews</span>
@@ -231,11 +231,11 @@
 
       <!-- Search / Action Toolbar -->
       <div id="tab-action-bar" class="flex items-center gap-2 font-mono text-xs">
-        <div id="search-container" class="relative hidden">
-          <input type="text" id="admin-search-input" placeholder="Search..." class="bg-surface-container-high border border-outline-variant/60 rounded-lg pl-8 pr-3 py-1.5 text-xs text-on-surface focus:outline-none focus:border-primary w-48 sm:w-64"/>
+        <div id="search-container" class="relative">
+          <input type="text" id="admin-search-input" placeholder="Search scholars..." class="bg-surface-container-high border border-outline-variant/60 rounded-lg pl-8 pr-3 py-1.5 text-xs text-on-surface focus:outline-none focus:border-primary w-48 sm:w-64"/>
           <span class="material-symbols-outlined text-[16px] text-outline absolute left-2.5 top-2 pointer-events-none">search</span>
         </div>
-        <button id="btn-export-csv" class="px-3 py-1.5 rounded-lg bg-surface-container-high border border-outline-variant/60 hover:border-primary/50 text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1.5 text-[11px] hidden">
+        <button id="btn-export-csv" class="px-3 py-1.5 rounded-lg bg-surface-container-high border border-outline-variant/60 hover:border-primary/50 text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1.5 text-[11px]">
           <span class="material-symbols-outlined text-[15px]">download</span>
           Export CSV
         </button>
@@ -244,8 +244,55 @@
 
     <!-- C. TAB PANES -->
 
-    <!-- TAB 1: LIVE ACTIVITY STREAM -->
-    <section id="pane-live" class="admin-tab-pane space-y-4">
+    <!-- TAB 1: SCHOLAR ACCOUNTS ROSTER (PERMANENT REGISTERED USERS) -->
+    <section id="pane-users" class="admin-tab-pane space-y-4">
+      <div class="rounded-xl bg-surface-container-low border border-outline-variant/40 overflow-hidden shadow-xl">
+        <div class="p-4 bg-surface-container border-b border-outline-variant/40 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="font-bold text-sm text-primary tracking-wider uppercase flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">badge</span>
+              Permanent Registered Users Registry
+            </h2>
+            <p class="font-mono text-xs text-on-surface-variant">All permanently stored player accounts, login timestamps, status & game progress</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 font-mono text-xs">
+            <span class="text-outline text-[11px]">Filter Role:</span>
+            <select id="user-role-filter" class="bg-surface-container-high border border-outline-variant/60 rounded px-2.5 py-1 text-xs text-on-surface focus:outline-none">
+              <option value="all">All Accounts</option>
+              <option value="student">Students</option>
+              <option value="admin">Administrators</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left font-mono text-xs">
+            <thead class="bg-surface-container-lowest/80 text-outline uppercase text-[10px] tracking-wider border-b border-outline-variant/30">
+              <tr>
+                <th class="py-3 px-3">User ID</th>
+                <th class="py-3 px-3">Name</th>
+                <th class="py-3 px-3">Email Address</th>
+                <th class="py-3 px-3">Created Date</th>
+                <th class="py-3 px-3">Last Login</th>
+                <th class="py-3 px-3">Account Status</th>
+                <th class="py-3 px-3">Game Progress</th>
+                <th class="py-3 px-3">Completed Levels</th>
+                <th class="py-3 px-3">Current Unlocked Level</th>
+                <th class="py-3 px-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody" class="divide-y divide-outline-variant/20">
+              <tr>
+                <td colspan="10" class="py-8 text-center text-outline">Loading registered scholars from permanent database...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: LIVE ACTIVITY STREAM -->
+    <section id="pane-live" class="admin-tab-pane hidden space-y-4">
       <div class="rounded-xl bg-surface-container-low border border-outline-variant/40 overflow-hidden shadow-xl">
         <div class="p-4 bg-surface-container border-b border-outline-variant/40 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -253,10 +300,10 @@
               <span class="material-symbols-outlined text-[18px]">radar</span>
               Real-Time Active Player Sessions
             </h2>
-            <p class="font-mono text-xs text-on-surface-variant">Live heartbeat connections within the last 120 seconds</p>
+            <p class="font-mono text-xs text-on-surface-variant">Live heartbeat connections within the last 120 seconds (Registered accounts remain permanently in Scholar Accounts)</p>
           </div>
           <span class="font-mono text-[11px] px-2.5 py-1 rounded bg-surface-container-highest text-primary-fixed border border-primary/20">
-            Auto-Pruning: 120s Timeout
+            Live Presence Stream
           </span>
         </div>
 
@@ -280,51 +327,6 @@
                     <span>Scanning temporal resonant frequencies...</span>
                   </div>
                 </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 2: SCHOLAR ACCOUNTS ROSTER -->
-    <section id="pane-users" class="admin-tab-pane hidden space-y-4">
-      <div class="rounded-xl bg-surface-container-low border border-outline-variant/40 overflow-hidden shadow-xl">
-        <div class="p-4 bg-surface-container border-b border-outline-variant/40 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 class="font-bold text-sm text-primary tracking-wider uppercase flex items-center gap-2">
-              <span class="material-symbols-outlined text-[18px]">badge</span>
-              Registered Scholar Registry
-            </h2>
-            <p class="font-mono text-xs text-on-surface-variant">Complete player accounts created in the system archive</p>
-          </div>
-          <div class="flex items-center gap-2 font-mono text-xs">
-            <span class="text-outline text-[11px]">Filter Role:</span>
-            <select id="user-role-filter" class="bg-surface-container-high border border-outline-variant/60 rounded px-2.5 py-1 text-xs text-on-surface focus:outline-none">
-              <option value="all">All Roles</option>
-              <option value="student">Students</option>
-              <option value="admin">Administrators</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left font-mono text-xs">
-            <thead class="bg-surface-container-lowest/80 text-outline uppercase text-[10px] tracking-wider border-b border-outline-variant/30">
-              <tr>
-                <th class="py-3 px-4">ID</th>
-                <th class="py-3 px-4">Username</th>
-                <th class="py-3 px-4">Email</th>
-                <th class="py-3 px-4">Clearance Role</th>
-                <th class="py-3 px-4">Rank Title</th>
-                <th class="py-3 px-4">Level</th>
-                <th class="py-3 px-4">Solved</th>
-                <th class="py-3 px-4 text-right">Joined</th>
-              </tr>
-            </thead>
-            <tbody id="users-tbody" class="divide-y divide-outline-variant/20">
-              <tr>
-                <td colspan="8" class="py-8 text-center text-outline">Loading registered scholars...</td>
               </tr>
             </tbody>
           </table>

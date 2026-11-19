@@ -190,7 +190,14 @@ document.addEventListener('DOMContentLoaded', async () => {
           // Redirect straight to game!
           window.location.href = '/game';
         } else {
-          authError.textContent = (result && result.error) || 'Authentication failed. Please verify credentials.';
+          if (currentAuthMode === 'signup' && result && result.code === 'ACCOUNT_EXISTS') {
+            updateModalMode('signin');
+            const handleEl = document.getElementById('landing-handle-input');
+            if (handleEl && email) handleEl.value = email;
+            authError.textContent = 'An account with this email already exists! Switched to Sign In — please enter your password.';
+          } else {
+            authError.textContent = (result && result.error) || 'Authentication failed. Please verify credentials.';
+          }
           authError.classList.remove('hidden');
         }
       } catch (err) {

@@ -73,67 +73,31 @@ router.post('/attempt', optionalAuth, async (req, res) => {
   try {
     const { puzzleId, levelNumber, pinsConfiguration, finalDisplayedTime, isSuccess } = req.body;
 
+    if (req.user) {
+      db.ensureUserFromToken(req.user);
+    }
+
     const userId = req.user ? req.user.id : null;
+    const solvedLevel = parseInt(levelNumber || puzzleId, 10) || 1;
     const configString = typeof pinsConfiguration === 'string'
       ? pinsConfiguration
       : JSON.stringify(pinsConfiguration || []);
 
     if (userId) {
-      // Record attempt in database
+      // Record attempt in permanent database
       await db.query(
         'INSERT INTO game_attempts (user_id, puzzle_id, pins_configuration, final_displayed_time, is_success) VALUES (?, ?, ?, ?, ?)',
-        [userId, puzzleId || null, configString, finalDisplayedTime || '00:00', !!isSuccess]
+        [userId, solvedLevel, configString, finalDisplayedTime || '00:00', !!isSuccess]
       );
 
-      // If successful attempt, update user progress
+      // If successful attempt, permanently update user progress, completed levels, unlocked levels, and achievements
       if (isSuccess) {
-        // Fetch current profile
-        const profiles = await db.query(
-          'SELECT rank_title, puzzles_solved, current_level FROM user_profiles WHERE user_id = ?',
-          [userId]
-        );
-
-        // Count all successful attempts for this user in game_attempts
-        let solvedAttempts = 1;
-        try {
-          const attemptCounts = await db.query(
-            'SELECT COUNT(*) AS total_solved FROM game_attempts WHERE user_id = ? AND is_success = 1',
-            [userId]
-          );
-          if (attemptCounts && attemptCounts[0]) {
-            solvedAttempts = parseInt(attemptCounts[0].total_solved, 10) || 1;
-          }
-        } catch (e) {}
-
-        const previousSolved = (profiles && profiles[0]) ? parseInt(profiles[0].puzzles_solved, 10) || 0 : 0;
-        const currentSolved = Math.max(previousSolved + 1, solvedAttempts);
-        const nextLevel = Math.max(
-          (profiles && profiles[0]) ? parseInt(profiles[0].current_level, 10) || 1 : 1,
-          (parseInt(levelNumber, 10) || 1) + 1,
-          currentSolved + 1
-        );
-        const newRank = calculateRank(currentSolved);
-
-        if (!profiles || profiles.length === 0) {
-          await db.query(
-            'INSERT INTO user_profiles (user_id, rank_title, puzzles_solved, current_level) VALUES (?, ?, ?, ?)',
-            [userId, newRank, currentSolved, nextLevel]
-          );
-        } else {
-          await db.query(
-            'UPDATE user_profiles SET puzzles_solved = ?, current_level = ?, rank_title = ? WHERE user_id = ?',
-            [currentSolved, nextLevel, newRank, userId]
-          );
-        }
+        const updatedProfile = await db.recordLevelCompletion(userId, solvedLevel);
 
         return res.json({
           success: true,
-          message: 'Temporal equation solved! Progress recorded.',
-          updatedProfile: {
-            puzzles_solved: currentSolved,
-            current_level: nextLevel,
-            rank_title: newRank
-          }
+          message: 'Temporal equation solved! Progress permanently recorded.',
+          updatedProfile
         });
       }
     }

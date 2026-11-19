@@ -227,36 +227,53 @@ function calculateRank(puzzlesSolved) {
 router.get('/users', requireAdmin, async (req, res) => {
   try {
     const users = await db.query(
-      `SELECT u.id, u.username, u.email, u.role, u.created_at,
+      `SELECT u.id, u.username, u.email, u.role, u.status, u.created_at, u.last_login_at,
               COALESCE(p.rank_title, 'Apprentice Chronomancer') AS rank_title,
               COALESCE(p.puzzles_solved, 0) AS puzzles_solved,
-              COALESCE(p.current_level, 1) AS current_level
+              COALESCE(p.current_level, 1) AS current_level,
+              COALESCE(p.unlocked_level, 1) AS unlocked_level,
+              p.completed_levels,
+              p.achievements
        FROM users u
        LEFT JOIN user_profiles p ON u.id = p.user_id
        ORDER BY u.created_at DESC`
     );
 
-    // Reconcile with game_attempts to guarantee 100% accurate solved count
-    if (Array.isArray(users)) {
-      for (const u of users) {
-        try {
-          const attemptCounts = await db.query(
-            'SELECT COUNT(*) AS total_solved FROM game_attempts WHERE user_id = ? AND is_success = 1',
-            [u.id]
-          );
-          const solvedCount = attemptCounts && attemptCounts[0] ? (parseInt(attemptCounts[0].total_solved, 10) || 0) : 0;
-          if (solvedCount > (u.puzzles_solved || 0)) {
-            u.puzzles_solved = solvedCount;
-            u.current_level = Math.max(u.current_level || 1, solvedCount + 1);
-            u.rank_title = calculateRank(solvedCount);
-          }
-        } catch (e) {}
-      }
-    }
+    const enrichedUsers = (Array.isArray(users) ? users : []).map(u => {
+      const reconciled = db.getReconciledUserProfile(u.id);
+      const completedLevels = Array.isArray(reconciled.completed_levels)
+        ? reconciled.completed_levels
+        : [];
+      const solvedCount = Math.max(Number(u.puzzles_solved) || 0, Number(reconciled.puzzles_solved) || 0, completedLevels.length);
+      const maxCompleted = completedLevels.length > 0 ? Math.max(...completedLevels) : 0;
+      const currentLevel = Math.min(15, Math.max(1, Number(u.current_level) || 1, Number(reconciled.current_level) || 1));
+      const unlockedLevel = Math.min(15, Math.max(1, Number(u.unlocked_level) || 1, Number(reconciled.unlocked_level) || 1, currentLevel, maxCompleted + 1, solvedCount + 1));
+      const rankTitle = db.calculateRank(solvedCount);
+      const achievements = Array.isArray(reconciled.achievements) && reconciled.achievements.length > 0
+        ? reconciled.achievements
+        : db.calculateAchievements(completedLevels);
+
+      return {
+        id: u.id,
+        username: u.username,
+        email: u.email,
+        role: u.role || 'student',
+        status: u.status || 'Active',
+        created_at: u.created_at,
+        last_login_at: u.last_login_at || u.created_at,
+        rank_title: rankTitle,
+        puzzles_solved: solvedCount,
+        completed_levels: completedLevels,
+        current_level: currentLevel,
+        unlocked_level: unlockedLevel,
+        achievements,
+        progress_percent: Math.min(100, Math.round((solvedCount / 15) * 100))
+      };
+    });
 
     return res.json({
       success: true,
-      users: users || []
+      users: enrichedUsers
     });
   } catch (err) {
     console.error('[Admin Get Users Error]:', err);
@@ -367,6 +384,53 @@ router.post('/users/:id/role', requireAdmin, async (req, res) => {
   } catch (err) {
     console.error('[Admin Update Role Error]:', err);
     return res.status(500).json({ success: false, error: 'Failed to update user role.' });
+  }
+});
+
+// -------------------------------------------------------------
+// POST /api/admin/users/:id/status - Enable or Disable user account
+// -------------------------------------------------------------
+router.post('/users/:id/status', requireAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    const { status } = req.body;
+
+    if (!['Active', 'Disabled'].includes(status)) {
+      return res.status(400).json({ success: false, error: 'Invalid account status. Must be Active or Disabled.' });
+    }
+
+    await db.query('UPDATE users SET status = ? WHERE id = ?', [status, userId]);
+
+    return res.json({
+      success: true,
+      message: `Account #${userId} status updated to ${status}.`,
+      status
+    });
+  } catch (err) {
+    console.error('[Admin Update Status Error]:', err);
+    return res.status(500).json({ success: false, error: 'Failed to update account status.' });
+  }
+});
+
+// -------------------------------------------------------------
+// DELETE /api/admin/users/:id - Explicit Admin Account Deletion
+// -------------------------------------------------------------
+router.delete('/users/:id', requireAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    if (!userId || userId <= 0) {
+      return res.status(400).json({ success: false, error: 'Valid User ID is required.' });
+    }
+
+    await db.query('DELETE FROM users WHERE id = ?', [userId]);
+
+    return res.json({
+      success: true,
+      message: `Account #${userId} permanently deleted by administrator.`
+    });
+  } catch (err) {
+    console.error('[Admin Delete User Error]:', err);
+    return res.status(500).json({ success: false, error: 'Failed to delete user account.' });
   }
 });
 

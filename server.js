@@ -61,8 +61,8 @@ app.get('*', (req, res) => {
 
 const HOST = '0.0.0.0';
 
-// Start Server when not in serverless mode
-if (process.env.VERCEL !== '1') {
+// Start Server when run directly and not in serverless mode
+if (process.env.VERCEL !== '1' && require.main === module) {
   app.listen(PORT, HOST, async () => {
     console.log(`=======================================================`);
     console.log(`  CHRONOS: Time Manipulation Clock Puzzle Engine`);
@@ -75,7 +75,7 @@ if (process.env.VERCEL !== '1') {
     await db.initDB();
   });
 } else {
-  // Serverless initialization
+  // Serverless / imported initialization
   db.initDB();
 }
 

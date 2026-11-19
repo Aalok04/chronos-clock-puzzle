@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let autoRefreshEnabled = true;
   let autoRefreshTimer = null;
-  let activeTab = 'live';
+  let activeTab = 'users';
 
   // Cached datasets for local instant filtering
   let cachedUsers = [];
@@ -248,8 +248,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (metricWinRate) metricWinRate.textContent = `${d.gameplay.winRate || 0}%`;
       if (metricTotalAttempts) metricTotalAttempts.textContent = d.gameplay.totalAttempts || 0;
       if (metricDbMode) {
-        metricDbMode.textContent = d.database.dbMode.includes('SSL') ? 'Cloud (SSL)' : (d.database.isConnected ? 'MySQL Local' : 'In-Memory');
-        metricDbMode.className = `text-[10px] px-1.5 py-0.5 rounded border truncate max-w-[100px] ${
+        metricDbMode.textContent = d.database.dbMode.includes('SSL') ? 'Cloud (SSL)' : (d.database.mysqlConnected ? 'MySQL Local' : 'Permanent Disk');
+        metricDbMode.className = `text-[10px] px-1.5 py-0.5 rounded border truncate max-w-[110px] ${
           d.database.isConnected ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
         }`;
       }
@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (users.length === 0) {
       usersTbody.innerHTML = `
         <tr>
-          <td colspan="8" class="py-10 text-center text-outline">
+          <td colspan="10" class="py-10 text-center text-outline">
             No registered scholars match the current filter.
           </td>
         </tr>
@@ -406,26 +406,123 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     usersTbody.innerHTML = users.map(u => {
-      const isAdmin = u.role === 'admin' || u.role === 'owner';
-      const roleBadge = isAdmin
-        ? '<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold uppercase text-[10px]">Architect (Admin)</span>'
-        : '<span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/30 uppercase text-[10px]">Scholar (Student)</span>';
+      const isDisabled = String(u.status || 'Active').toLowerCase() === 'disabled';
+      const statusBadge = isDisabled
+        ? '<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold uppercase text-[10px]">Disabled</span>'
+        : '<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold uppercase text-[10px]">Active</span>';
 
-      const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString() : '--';
+      const createdStr = u.created_at
+        ? new Date(u.created_at).toLocaleString([], { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+        : '--';
+      const lastLoginStr = u.last_login_at
+        ? new Date(u.last_login_at).toLocaleString([], { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+        : createdStr;
+
+      const completedArr = Array.isArray(u.completed_levels) ? u.completed_levels : [];
+      const solvedCount = Math.max(Number(u.puzzles_solved) || 0, completedArr.length);
+      const progressPct = Math.min(100, Math.round((solvedCount / 15) * 100));
+      const completedText = completedArr.length > 0
+        ? `${solvedCount} / 15 (Epochs: ${completedArr.join(', ')})`
+        : (solvedCount > 0 ? `${solvedCount} / 15 Solved` : '0 / 15 (None yet)');
+      const unlockedLvl = u.unlocked_level || Math.min(15, Math.max(u.current_level || 1, solvedCount + 1));
+      const currentLvl = u.current_level || 1;
 
       return `
         <tr class="hover:bg-surface-container/60 transition-colors">
-          <td class="py-3 px-4 text-outline font-mono">#${u.id}</td>
-          <td class="py-3 px-4 font-bold text-primary">${escapeHtml(u.username)}</td>
-          <td class="py-3 px-4 text-on-surface-variant font-mono text-[11px]">${escapeHtml(u.email)}</td>
-          <td class="py-3 px-4">${roleBadge}</td>
-          <td class="py-3 px-4 text-on-surface font-semibold">${escapeHtml(u.rank_title || 'Apprentice')}</td>
-          <td class="py-3 px-4 text-on-surface font-mono">Epoch ${u.current_level || 1}</td>
-          <td class="py-3 px-4 text-on-surface font-mono"><strong class="text-emerald-400">${u.puzzles_solved || 0}</strong> Solved</td>
-          <td class="py-3 px-4 text-right text-outline text-[11px]">${dateStr}</td>
+          <td class="py-3 px-3 text-outline font-mono">#${u.id}</td>
+          <td class="py-3 px-3 font-bold text-primary">
+            <div>${escapeHtml(u.username)}</div>
+            <div class="text-[10px] text-outline font-normal">${escapeHtml(u.role || 'student')}</div>
+          </td>
+          <td class="py-3 px-3 text-on-surface-variant font-mono text-[11px]">${escapeHtml(u.email)}</td>
+          <td class="py-3 px-3 text-outline text-[11px] whitespace-nowrap">${createdStr}</td>
+          <td class="py-3 px-3 text-on-surface-variant text-[11px] whitespace-nowrap">${lastLoginStr}</td>
+          <td class="py-3 px-3">${statusBadge}</td>
+          <td class="py-3 px-3">
+            <div class="text-[11px] font-semibold text-on-surface">${escapeHtml(u.rank_title || 'Apprentice Chronomancer')}</div>
+            <div class="flex items-center gap-2 mt-1">
+              <div class="w-20 h-1.5 bg-surface-container-lowest rounded-full overflow-hidden border border-outline-variant/40">
+                <div class="h-full bg-primary rounded-full" style="width: ${progressPct}%"></div>
+              </div>
+              <span class="text-[10px] text-primary font-bold">${progressPct}%</span>
+            </div>
+          </td>
+          <td class="py-3 px-3 text-on-surface font-mono text-[11px]">
+            <strong class="text-emerald-400">${escapeHtml(completedText)}</strong>
+          </td>
+          <td class="py-3 px-3 text-on-surface font-mono text-[11px]">
+            <span class="px-2 py-0.5 rounded bg-primary/15 text-primary border border-primary/30 font-bold">Epoch ${unlockedLvl}</span>
+            <div class="text-[10px] text-outline mt-0.5">Active: Epoch ${currentLvl}</div>
+          </td>
+          <td class="py-3 px-3 text-right whitespace-nowrap">
+            <div class="inline-flex items-center gap-1.5">
+              <button class="btn-toggle-user-status px-2 py-1 rounded bg-surface-container-high hover:bg-amber-500/20 text-on-surface-variant hover:text-amber-300 border border-outline-variant/50 transition-colors text-[10px] cursor-pointer" data-id="${u.id}" data-status="${isDisabled ? 'Active' : 'Disabled'}">
+                ${isDisabled ? 'Enable' : 'Disable'}
+              </button>
+              <button class="btn-delete-user px-2 py-1 rounded bg-surface-container-high hover:bg-rose-500/20 text-on-surface-variant hover:text-rose-400 border border-outline-variant/50 transition-colors text-[10px] cursor-pointer" data-id="${u.id}" data-username="${escapeHtml(u.username)}">
+                Delete
+              </button>
+            </div>
+          </td>
         </tr>
       `;
     }).join('');
+
+    document.querySelectorAll('.btn-toggle-user-status').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const userId = e.currentTarget.dataset.id;
+        const newStatus = e.currentTarget.dataset.status;
+        await updateUserStatus(userId, newStatus);
+      });
+    });
+
+    document.querySelectorAll('.btn-delete-user').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const userId = e.currentTarget.dataset.id;
+        const uname = e.currentTarget.dataset.username;
+        if (confirm(`Are you sure you want to permanently delete account "${uname}" (#${userId})? This action only occurs on explicit administrator confirmation.`)) {
+          await deleteUserAccount(userId);
+        }
+      });
+    });
+  }
+
+  async function updateUserStatus(userId, status) {
+    try {
+      const res = await fetch(`/api/admin/users/${userId}/status`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ status })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message || `Account status set to ${status}.`);
+        await fetchUsers();
+      } else {
+        showToast(data.error || 'Failed to update account status.', true);
+      }
+    } catch (err) {
+      showToast('Error updating account status.', true);
+    }
+  }
+
+  async function deleteUserAccount(userId) {
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(data.message || 'Account permanently deleted.');
+        await fetchUsers();
+        await fetchOverview();
+      } else {
+        showToast(data.error || 'Failed to delete account.', true);
+      }
+    } catch (err) {
+      showToast('Error deleting account.', true);
+    }
   }
 
   if (userRoleFilter) {
@@ -596,17 +693,36 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const headers = ['ID', 'Username', 'Email', 'Role', 'Rank Title', 'Current Level', 'Puzzles Solved', 'Registered Date'];
-    const rows = users.map(u => [
-      u.id,
-      `"${(u.username || '').replace(/"/g, '""')}"`,
-      `"${(u.email || '').replace(/"/g, '""')}"`,
-      u.role || 'student',
-      `"${(u.rank_title || '').replace(/"/g, '""')}"`,
-      u.current_level || 1,
-      u.puzzles_solved || 0,
-      u.created_at || ''
-    ]);
+    const headers = [
+      'User ID',
+      'Name',
+      'Email Address',
+      'Account Creation Date',
+      'Last Login Date',
+      'Account Status',
+      'Game Progress',
+      'Completed Levels',
+      'Current Unlocked Level'
+    ];
+    const rows = users.map(u => {
+      const completedArr = Array.isArray(u.completed_levels) ? u.completed_levels : [];
+      const solvedCount = Math.max(Number(u.puzzles_solved) || 0, completedArr.length);
+      const progressPct = Math.min(100, Math.round((solvedCount / 15) * 100));
+      const completedStr = completedArr.length > 0 ? completedArr.join(';') : String(solvedCount);
+      const unlockedLvl = u.unlocked_level || Math.min(15, Math.max(u.current_level || 1, solvedCount + 1));
+
+      return [
+        u.id,
+        `"${(u.username || '').replace(/"/g, '""')}"`,
+        `"${(u.email || '').replace(/"/g, '""')}"`,
+        u.created_at || '',
+        u.last_login_at || u.created_at || '',
+        u.status || 'Active',
+        `"${progressPct}% (${(u.rank_title || 'Apprentice Chronomancer').replace(/"/g, '""')})"`,
+        `"${solvedCount}/15 (${completedStr})"`,
+        unlockedLvl
+      ];
+    });
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
     downloadUri(csvContent, `chronos_scholars_export_${Date.now()}.csv`);
@@ -691,6 +807,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stopAutoRefresh();
     autoRefreshTimer = setInterval(() => {
       fetchOverview();
+      fetchUsers();
       if (activeTab === 'live') fetchActivePlayers();
     }, 10000);
   }
@@ -733,8 +850,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function refreshAllData() {
     await fetchOverview();
-    if (activeTab === 'live') await fetchActivePlayers();
-    if (activeTab === 'users') await fetchUsers();
+    await fetchUsers();
+    await fetchActivePlayers();
     if (activeTab === 'feedback') await fetchFeedbacks();
   }
 
