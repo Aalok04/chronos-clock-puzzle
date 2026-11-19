@@ -989,10 +989,10 @@
   <script src="/js/app.js"></script>
 
   <!-- ========================================================================= -->
-  <!-- 6. TUTORIAL & HOW TO PLAY MODAL                                           -->
+  <!-- 6. TUTORIAL & HOW TO PLAY MODAL (VISUAL & INTERACTIVE FIELD GUIDE)        -->
   <!-- ========================================================================= -->
-  <div id="tutorial-modal-overlay" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden">
-    <div class="w-full max-w-2xl coin-edge-border rounded-xl bg-surface-container-low border border-primary/50 shadow-2xl relative overflow-hidden flex flex-col font-headline">
+  <div id="tutorial-modal-overlay" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 hidden">
+    <div class="w-full max-w-4xl coin-edge-border rounded-xl bg-surface-container-low border border-primary/50 shadow-2xl relative overflow-hidden flex flex-col font-headline max-h-[92vh]">
       
       <!-- Screwheads -->
       <div class="screwhead absolute top-3 left-3 z-30"></div>
@@ -1000,144 +1000,487 @@
       <div class="screwhead absolute bottom-3 left-3 z-30"></div>
       <div class="screwhead absolute bottom-3 right-3 z-30"></div>
 
-      <!-- Header -->
-      <div class="p-4 sm:p-5 border-b border-outline-variant/40 flex items-center justify-between bg-surface-container">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-primary shadow-sm">
-            <span class="material-symbols-outlined text-lg">school</span>
+      <!-- Sticky Header -->
+      <div class="px-4 py-3 sm:px-6 sm:py-4 border-b border-outline-variant/40 flex items-center justify-between bg-surface-container shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/20 border border-primary/60 flex items-center justify-center text-primary shadow-sm">
+            <span class="material-symbols-outlined text-lg sm:text-xl">auto_awesome</span>
           </div>
           <div>
-            <div class="flex items-center gap-2">
-              <h2 class="text-base sm:text-lg font-bold text-primary tracking-wide">CHRONOS: Field Guide & Tutorial</h2>
-              <span class="px-2 py-0.5 rounded bg-primary/20 border border-primary/50 text-primary-fixed text-[9px] font-mono font-bold tracking-widest uppercase">Level 1 Academy</span>
+            <div class="flex flex-wrap items-center gap-2">
+              <h2 class="text-base sm:text-xl font-bold text-primary tracking-wide">CHRONOS: Visual Field Guide</h2>
+              <span class="px-2 py-0.5 rounded bg-primary/20 border border-primary/50 text-primary-fixed text-[9px] font-mono font-bold tracking-widest uppercase">Interactive Academy</span>
             </div>
-            <p class="font-mono text-[10px] text-on-surface-variant">Essential Clock Rules & Level 1 Quick Start</p>
+            <p class="font-mono text-[10px] sm:text-[11px] text-on-surface-variant">Learn the clock puzzle in 5 quick visual steps</p>
           </div>
         </div>
-        <button id="btn-close-tutorial" class="w-7 h-7 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant flex items-center justify-center font-mono text-sm cursor-pointer" title="Close Tutorial">✕</button>
+        <button id="btn-close-tutorial" class="w-8 h-8 rounded-full bg-surface-container-high hover:bg-surface-container-highest border border-outline-variant/50 hover:border-primary text-on-surface-variant hover:text-primary flex items-center justify-center font-mono text-sm cursor-pointer transition-colors shrink-0" title="Close Tutorial">✕</button>
       </div>
 
-      <!-- Tutorial Content Body (4 Clear Rules) -->
-      <div class="p-4 sm:p-6 space-y-3.5 max-h-[72vh] overflow-y-auto font-sans text-xs text-on-surface">
-        
-        <!-- Level 1 Compulsory Quick Start Box -->
-        <div class="p-4 rounded-xl bg-gradient-to-r from-primary/15 via-surface-container to-surface-container border-2 border-primary/60 shadow-lg space-y-2">
-          <div class="flex items-center gap-2 font-mono text-primary font-bold text-xs uppercase tracking-wider">
-            <span class="material-symbols-outlined text-[18px]">lightbulb</span>
-            <span>Level 1 Mission: How to Solve in 30 Seconds</span>
+      <!-- Visual Tutorial Body -->
+      <div class="p-3.5 sm:p-6 space-y-5 overflow-y-auto scroll-smooth font-sans text-xs text-on-surface flex-1">
+
+        <!-- ================================================================= -->
+        <!-- SECTION 1: THE BASIC CLOCK MOVEMENT                               -->
+        <!-- ================================================================= -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-surface-container border border-primary/40 shadow-lg space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2 font-mono text-primary font-bold text-xs sm:text-sm uppercase tracking-wider">
+              <span class="w-6 h-6 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-bold text-xs shadow">1</span>
+              <span>The Basic Clock Movement (75-Minute Run)</span>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full bg-primary/15 border border-primary/40 font-mono text-[10px] text-primary-fixed font-semibold">Goal: Reach the Target Time</span>
           </div>
-          <p class="text-on-surface leading-relaxed text-[11px]">
-            In <strong>Epoch 1</strong>, the escapement starts at <strong>01:00</strong> and runs naturally for 75m to <strong>02:15</strong>. The target time is <strong>02:35</strong>. You need an extra <strong>+20 minutes (+1/3 fraction)</strong> to synchronize the dial!
-          </p>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-[10px] pt-1">
-            <div class="p-2 rounded bg-surface-container-lowest/90 border border-primary/40 flex items-center gap-2">
-              <span class="w-5 h-5 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-bold">1</span>
-              <span>Select <strong>Green (+1/3) Pin</strong> from the tray.</span>
+
+          <!-- 3-Clock Visual Progression Diagram -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-center pt-1">
+            
+            <!-- Clock 1A: Start Time (01:00) -->
+            <div class="p-3 rounded-xl bg-surface-container-lowest/90 border border-outline-variant/50 flex flex-col items-center text-center relative">
+              <span class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-mono text-[10px] font-bold uppercase mb-1.5">1. Start Position</span>
+              <svg class="w-28 h-28 sm:w-32 sm:h-32" viewBox="0 0 160 160">
+                <circle cx="80" cy="80" r="72" fill="#101218" stroke="#cda250" stroke-width="3"/>
+                <circle cx="80" cy="80" r="64" fill="none" stroke="#4e4638" stroke-width="1" stroke-dasharray="2 4"/>
+                <!-- Cardinal Labels -->
+                <text x="80" y="25" text-anchor="middle" fill="#ffdea7" font-size="10" font-weight="bold" font-family="serif">XII</text>
+                <text x="110" y="34" text-anchor="middle" fill="#eec06a" font-size="9" font-weight="bold" font-family="serif">I</text>
+                <text x="131" y="54" text-anchor="middle" fill="#eec06a" font-size="9" font-weight="bold" font-family="serif">II</text>
+                <text x="138" y="83" text-anchor="middle" fill="#ffdea7" font-size="10" font-weight="bold" font-family="serif">III</text>
+                <text x="80" y="142" text-anchor="middle" fill="#ffdea7" font-size="10" font-weight="bold" font-family="serif">VI</text>
+                <text x="22" y="83" text-anchor="middle" fill="#ffdea7" font-size="10" font-weight="bold" font-family="serif">IX</text>
+                <!-- Hour Hand at 1:00 (30 deg) -->
+                <line x1="80" y1="80" x2="98" y2="49" stroke="#eec06a" stroke-width="4.5" stroke-linecap="round"/>
+                <!-- Minute Hand at 00m (0 deg) -->
+                <line x1="80" y1="80" x2="80" y2="28" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="80" cy="80" r="5" fill="#eec06a"/>
+              </svg>
+              <div class="font-mono text-sm font-bold text-on-surface mt-1">01:00</div>
+              <div class="text-[11px] text-on-surface-variant">Clock starts here</div>
             </div>
-            <div class="p-2 rounded bg-surface-container-lowest/90 border border-sky-400/40 flex items-center gap-2">
-              <span class="w-5 h-5 rounded-full bg-sky-400 text-surface-container-lowest flex items-center justify-center font-bold">2</span>
-              <span>Tap or drop into <strong>Outer Socket 15m</strong>.</span>
+
+            <!-- Clock 1B: +75m Natural Run -> Natural End (02:15) -->
+            <div class="p-3 rounded-xl bg-surface-container-lowest/90 border border-sky-400/50 flex flex-col items-center text-center relative">
+              <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-400/40 font-mono text-[10px] font-bold uppercase mb-1.5">2. After 75 Min Run</span>
+              <svg class="w-28 h-28 sm:w-32 sm:h-32" viewBox="0 0 160 160">
+                <circle cx="80" cy="80" r="72" fill="#101218" stroke="#38bdf8" stroke-width="2.5"/>
+                <!-- 75m Sweep Trail Arc (Full turn + 90 deg to 3 o'clock) -->
+                <circle cx="80" cy="80" r="52" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="3 3" opacity="0.45"/>
+                <path d="M 80 28 A 52 52 0 0 1 132 80" fill="none" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+                <polygon points="132,84 126,75 137,75" fill="#38bdf8"/>
+                <!-- Cardinal Labels -->
+                <text x="80" y="22" text-anchor="middle" fill="#ffdea7" font-size="10" font-weight="bold" font-family="serif">XII</text>
+                <text x="131" y="54" text-anchor="middle" fill="#eec06a" font-size="9" font-weight="bold" font-family="serif">II</text>
+                <text x="143" y="83" text-anchor="middle" fill="#38bdf8" font-size="9" font-weight="bold" font-family="monospace">15m</text>
+                <text x="80" y="142" text-anchor="middle" fill="#ffdea7" font-size="10" font-weight="bold" font-family="serif">VI</text>
+                <text x="22" y="83" text-anchor="middle" fill="#ffdea7" font-size="10" font-weight="bold" font-family="serif">IX</text>
+                <!-- Hour Hand at 2:15 (67.5 deg) -->
+                <line x1="80" y1="80" x2="113" y2="66" stroke="#eec06a" stroke-width="4.5" stroke-linecap="round"/>
+                <!-- Minute Hand at 15m (90 deg) -->
+                <line x1="80" y1="80" x2="128" y2="80" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="80" cy="80" r="5" fill="#eec06a"/>
+              </svg>
+              <div class="font-mono text-sm font-bold text-sky-300 mt-1">02:15 (Natural End)</div>
+              <div class="text-[11px] text-on-surface-variant">Stops 20m short without pins</div>
             </div>
-            <div class="p-2 rounded bg-surface-container-lowest/90 border border-emerald-400/40 flex items-center gap-2">
-              <span class="w-5 h-5 rounded-full bg-emerald-400 text-surface-container-lowest flex items-center justify-center font-bold">3</span>
-              <span>Click <strong>START CLOCK</strong> to warp to 02:35!</span>
+
+            <!-- Clock 1C: Target Position (02:35) with Difference Arrow -->
+            <div class="p-3 rounded-xl bg-surface-container-lowest/90 border-2 border-emerald-400/60 flex flex-col items-center text-center relative shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 font-mono text-[10px] font-bold uppercase mb-1.5">3. Target Position</span>
+              <svg class="w-28 h-28 sm:w-32 sm:h-32" viewBox="0 0 160 160">
+                <circle cx="80" cy="80" r="72" fill="#101218" stroke="#10b981" stroke-width="3"/>
+                <!-- Ghost hand at 15m (02:15) -->
+                <line x1="80" y1="80" x2="124" y2="80" stroke="#38bdf8" stroke-width="2" stroke-dasharray="3 3" opacity="0.6"/>
+                <!-- Difference Arrow from 15m (90 deg) to 35m (210 deg) -->
+                <path d="M 126 80 A 46 46 0 0 1 57 120" fill="none" stroke="#10b981" stroke-width="4" stroke-dasharray="5 3" stroke-linecap="round"/>
+                <polygon points="53,118 63,115 59,125" fill="#10b981"/>
+                <!-- Badge inside dial showing +20m gap -->
+                <rect x="74" y="102" width="44" height="16" rx="4" fill="#064e3b" stroke="#10b981" stroke-width="1"/>
+                <text x="96" y="113" text-anchor="middle" fill="#34d399" font-size="9" font-weight="bold" font-family="monospace">+20m</text>
+                <!-- Labels -->
+                <text x="80" y="22" text-anchor="middle" fill="#ffdea7" font-size="10" font-weight="bold" font-family="serif">XII</text>
+                <text x="142" y="83" text-anchor="middle" fill="#38bdf8" font-size="8" font-family="monospace">15m</text>
+                <text x="48" y="140" text-anchor="middle" fill="#34d399" font-size="9" font-weight="bold" font-family="monospace">35m</text>
+                <!-- Hour Hand at 2:35 -->
+                <line x1="80" y1="80" x2="115" y2="72" stroke="#eec06a" stroke-width="4.5" stroke-linecap="round"/>
+                <!-- Minute Hand at 35m (210 deg) -->
+                <line x1="80" y1="80" x2="54" y2="125" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
+                <circle cx="80" cy="80" r="5" fill="#eec06a"/>
+              </svg>
+              <div class="font-mono text-sm font-bold text-emerald-400 mt-1">02:35 (Target!)</div>
+              <div class="text-[11px] text-emerald-300 font-semibold">Pin adds +20m to win!</div>
             </div>
+
           </div>
         </div>
 
-        <!-- Step 1: The Goal & The Math -->
-        <div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant/40 space-y-1.5">
-          <div class="flex items-center gap-2 font-mono text-primary font-bold text-[11px] uppercase tracking-wider">
-            <span class="w-5 h-5 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-mono text-xs font-bold">1</span>
-            <span>The General Rule: Hit the Target Time</span>
+        <!-- ================================================================= -->
+        <!-- SECTION 2: THE TWO TRIGGER RINGS                                  -->
+        <!-- ================================================================= -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-surface-container border border-outline-variant/50 shadow-lg space-y-3">
+          <div class="flex items-center gap-2 font-mono text-primary font-bold text-xs sm:text-sm uppercase tracking-wider">
+            <span class="w-6 h-6 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-bold text-xs shadow">2</span>
+            <span>The Two Trigger Rings (Which Hand Hits Which Ring?)</span>
           </div>
-          <p class="text-on-surface-variant leading-relaxed">
-            Every epoch runs for a fixed duration (75m). Without pins, time advances normally. Slot concentric fraction pins to warp hand positions and reach the exact <strong>Target Time</strong> before the running duration expires.
-          </p>
-        </div>
 
-        <!-- Step 2: The Two Clock Rings -->
-        <div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant/40 space-y-2">
-          <div class="flex items-center gap-2 font-mono text-primary font-bold text-[11px] uppercase tracking-wider">
-            <span class="w-5 h-5 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-mono text-xs font-bold">2</span>
-            <span>The Two Trigger Rings</span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-[11px]">
-            <div class="p-2.5 rounded bg-surface-container-lowest border border-sky-500/40">
-              <div class="text-sky-400 font-bold flex items-center gap-1.5 mb-1">
-                <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
-                <span>Outer Ring (Cyan: 0m..55m)</span>
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center bg-surface-container-lowest/90 p-3.5 sm:p-4 rounded-xl border border-outline-variant/40">
+            
+            <!-- Left Callout: Outer Ring (Minute Hand) -->
+            <div class="lg:col-span-4 p-3 rounded-xl bg-sky-950/30 border-2 border-sky-400/60 space-y-1.5">
+              <div class="flex items-center gap-2">
+                <span class="w-3.5 h-3.5 rounded-full bg-sky-400 shadow-[0_0_10px_#38bdf8]"></span>
+                <span class="font-mono font-bold text-xs sm:text-sm text-sky-300 uppercase">Outer Ring (Cyan)</span>
               </div>
-              <p class="text-on-surface-variant font-sans text-[11px]">
-                Triggered by the <strong>Minute Hand</strong> using fraction warps (+1/3, -1/4, +1/6).
+              <div class="font-mono text-[11px] text-primary-fixed font-bold">Triggered by: LONG MINUTE HAND</div>
+              <p class="text-[11px] text-on-surface-variant leading-snug">
+                12 outer sockets (<code class="text-sky-300">0m..55m</code>). Shifts time by <strong>minutes</strong> (<code class="text-emerald-300">+20m</code>, <code class="text-rose-300">-15m</code>, <code class="text-sky-300">+10m</code>).
               </p>
             </div>
-            <div class="p-2.5 rounded bg-surface-container-lowest border border-amber-500/40">
-              <div class="text-amber-400 font-bold flex items-center gap-1.5 mb-1">
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                <span>Inner Ring (Amber: 1h..12h)</span>
+
+            <!-- Center Large Visual Diagram of Both Rings -->
+            <div class="lg:col-span-4 flex justify-center">
+              <svg class="w-52 h-52 sm:w-56 sm:h-56" viewBox="0 0 240 240">
+                <!-- Dial Base -->
+                <circle cx="120" cy="120" r="112" fill="#0c0e14" stroke="#cda250" stroke-width="3"/>
+                <circle cx="120" cy="120" r="104" fill="none" stroke="#4e4638" stroke-width="1"/>
+
+                <!-- OUTER RING (Cyan R=78) -->
+                <circle cx="120" cy="120" r="78" fill="none" stroke="#38bdf8" stroke-width="3" stroke-dasharray="5 5"/>
+                <!-- 12 Cyan Outer Sockets -->
+                <circle cx="120" cy="42" r="6.5" fill="#0c0e14" stroke="#38bdf8" stroke-width="2"/>
+                <circle cx="159" cy="52" r="6.5" fill="#0c0e14" stroke="#38bdf8" stroke-width="2"/>
+                <circle cx="187" cy="81" r="6.5" fill="#0c0e14" stroke="#38bdf8" stroke-width="2"/>
+                <circle cx="198" cy="120" r="8" fill="#38bdf8" stroke="#ffffff" stroke-width="2"/>
+                <circle cx="187" cy="159" r="6.5" fill="#0c0e14" stroke="#38bdf8" stroke-width="2"/>
+                <circle cx="159" cy="187" r="6.5" fill="#0c0e14" stroke="#38bdf8" stroke-width="2"/>
+                <circle cx="120" cy="198" r="6.5" fill="#0c0e14" stroke="#38bdf8" stroke-width="2"/>
+                <circle cx="81" cy="187" r="6.5" fill="#0c0e14" stroke="#38bdf8" stroke-width="2"/>
+                <circle cx="52" cy="159" r="6.5" fill="#0c0e14" stroke="#38bdf8" stroke-width="2"/>
+                <circle cx="42" cy="120" r="6.5" fill="#0c0e14" stroke="#38bdf8" stroke-width="2"/>
+                <circle cx="52" cy="81" r="6.5" fill="#0c0e14" stroke="#38bdf8" stroke-width="2"/>
+                <circle cx="81" cy="52" r="6.5" fill="#0c0e14" stroke="#38bdf8" stroke-width="2"/>
+
+                <!-- INNER RING (Amber R=48) -->
+                <circle cx="120" cy="120" r="48" fill="none" stroke="#fbbf24" stroke-width="3" stroke-dasharray="4 4"/>
+                <!-- 12 Amber Inner Sockets -->
+                <circle cx="120" cy="72" r="5.5" fill="#0c0e14" stroke="#fbbf24" stroke-width="2"/>
+                <circle cx="144" cy="78" r="5.5" fill="#0c0e14" stroke="#fbbf24" stroke-width="2"/>
+                <circle cx="161" cy="96" r="5.5" fill="#0c0e14" stroke="#fbbf24" stroke-width="2"/>
+                <circle cx="168" cy="120" r="5.5" fill="#0c0e14" stroke="#fbbf24" stroke-width="2"/>
+                <circle cx="161" cy="144" r="5.5" fill="#0c0e14" stroke="#fbbf24" stroke-width="2"/>
+                <circle cx="144" cy="161" r="5.5" fill="#0c0e14" stroke="#fbbf24" stroke-width="2"/>
+                <circle cx="120" cy="168" r="5.5" fill="#0c0e14" stroke="#fbbf24" stroke-width="2"/>
+                <circle cx="96" cy="161" r="5.5" fill="#0c0e14" stroke="#fbbf24" stroke-width="2"/>
+                <circle cx="78" cy="144" r="5.5" fill="#0c0e14" stroke="#fbbf24" stroke-width="2"/>
+                <circle cx="72" cy="120" r="5.5" fill="#0c0e14" stroke="#fbbf24" stroke-width="2"/>
+                <circle cx="78" cy="96" r="7.5" fill="#fbbf24" stroke="#ffffff" stroke-width="2"/>
+                <circle cx="96" cy="78" r="5.5" fill="#0c0e14" stroke="#fbbf24" stroke-width="2"/>
+
+                <!-- Short Gold Hour Hand pointing to Inner Ring 10h socket (78, 96) -->
+                <line x1="120" y1="120" x2="84" y2="99" stroke="#fbbf24" stroke-width="6" stroke-linecap="round"/>
+                <!-- Long Blue Minute Hand pointing to Outer Ring 15m socket (198, 120) -->
+                <line x1="120" y1="120" x2="190" y2="120" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="120" cy="120" r="7" fill="#eec06a" stroke="#101218" stroke-width="2"/>
+
+                <!-- Labels inside SVG -->
+                <rect x="134" y="18" width="88" height="18" rx="4" fill="#082f49" stroke="#38bdf8" stroke-width="1.2"/>
+                <text x="178" y="30" text-anchor="middle" fill="#7dd3fc" font-size="9" font-weight="bold" font-family="monospace">OUTER = MINUTE</text>
+                <line x1="178" y1="36" x2="162" y2="50" stroke="#38bdf8" stroke-width="1.5"/>
+
+                <rect x="18" y="198" width="86" height="18" rx="4" fill="#451a03" stroke="#fbbf24" stroke-width="1.2"/>
+                <text x="61" y="210" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="bold" font-family="monospace">INNER = HOUR</text>
+                <line x1="65" y1="198" x2="94" y2="164" stroke="#fbbf24" stroke-width="1.5"/>
+              </svg>
+            </div>
+
+            <!-- Right Callout: Inner Ring (Hour Hand) -->
+            <div class="lg:col-span-4 p-3 rounded-xl bg-amber-950/30 border-2 border-amber-400/60 space-y-1.5">
+              <div class="flex items-center gap-2">
+                <span class="w-3.5 h-3.5 rounded-full bg-amber-400 shadow-[0_0_10px_#fbbf24]"></span>
+                <span class="font-mono font-bold text-xs sm:text-sm text-amber-300 uppercase">Inner Ring (Amber)</span>
               </div>
-              <p class="text-on-surface-variant font-sans text-[11px]">
-                Triggered by the <strong>Hour Hand</strong> (Minute hand stops, Hour hand steps forward/backward to bridge hour gaps).
+              <div class="font-mono text-[11px] text-primary-fixed font-bold">Triggered by: SHORT HOUR HAND</div>
+              <p class="text-[11px] text-on-surface-variant leading-snug">
+                12 inner sockets (<code class="text-amber-300">1h..12h</code>). Shifts time by <strong>hours</strong> (<code class="text-emerald-300">+4h</code>, <code class="text-rose-300">-3h</code>, <code class="text-sky-300">+2h</code>).
               </p>
             </div>
+
           </div>
         </div>
 
-        <!-- Step 3: The 3 Pin Types -->
-        <div class="p-3.5 rounded-lg bg-surface-container border border-outline-variant/40 space-y-2">
-          <div class="flex items-center gap-2 font-mono text-primary font-bold text-[11px] uppercase tracking-wider">
-            <span class="w-5 h-5 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-mono text-xs font-bold">3</span>
-            <span>The Time Fraction Pins</span>
+        <!-- ================================================================= -->
+        <!-- SECTION 3: THE THREE FRACTION PINS                                -->
+        <!-- ================================================================= -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-surface-container border border-outline-variant/50 shadow-lg space-y-3">
+          <div class="flex items-center gap-2 font-mono text-primary font-bold text-xs sm:text-sm uppercase tracking-wider">
+            <span class="w-6 h-6 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-bold text-xs shadow">3</span>
+            <span>The Three Fraction Pins</span>
           </div>
-          <div class="grid grid-cols-3 gap-2 font-mono text-[10px] text-center">
-            <div class="p-2 rounded bg-emerald-950/40 border border-emerald-500/50">
-              <span class="text-emerald-400 font-bold text-xs block mb-0.5">+1/3 Forward</span>
-              <span class="text-on-surface-variant font-sans text-[10px]">+1/3 hr (20m) / +1h step</span>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 font-mono">
+            
+            <!-- Card 3A: GREEN PIN (+1/3) -->
+            <div class="p-3.5 rounded-xl bg-emerald-950/25 border-2 border-emerald-500/60 flex flex-col justify-between space-y-3 shadow-md">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <!-- Actual Game Pin Graphic -->
+                  <div class="w-8 h-8 rounded-full border-2 relative shrink-0" style="background-color:#10b981; border-color:#34d399; box-shadow:0 0 12px #10b981, inset 0 2px 3px rgba(255,255,255,0.6);"></div>
+                  <div>
+                    <div class="text-emerald-300 font-bold text-sm">GREEN PIN</div>
+                    <div class="text-[10px] text-emerald-400 font-bold">+1/3 Forward Jump</div>
+                  </div>
+                </div>
+                <!-- Mini Clock showing +1/3 (+120 deg) clockwise sweep -->
+                <svg class="w-14 h-14 shrink-0" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" fill="#0c0e14" stroke="#10b981" stroke-width="2"/>
+                  <path d="M 40 40 L 40 12 A 28 28 0 0 1 64.2 54 Z" fill="#10b981" fill-opacity="0.28"/>
+                  <path d="M 40 12 A 28 28 0 0 1 64.2 54" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round"/>
+                  <polygon points="64,57 59,49 68,50" fill="#34d399"/>
+                  <line x1="40" y1="40" x2="40" y2="14" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="2 2"/>
+                  <line x1="40" y1="40" x2="62" y2="53" stroke="#34d399" stroke-width="2.5" stroke-linecap="round"/>
+                  <circle cx="40" cy="40" r="3" fill="#eec06a"/>
+                </svg>
+              </div>
+              <div class="space-y-1.5 text-[11px]">
+                <div class="px-2.5 py-1.5 rounded bg-surface-container-lowest/90 border border-sky-400/40 flex items-center justify-between">
+                  <span class="text-sky-300">Outer Ring:</span>
+                  <strong class="text-emerald-300 text-xs">+20 minutes</strong>
+                </div>
+                <div class="px-2.5 py-1.5 rounded bg-surface-container-lowest/90 border border-amber-400/40 flex items-center justify-between">
+                  <span class="text-amber-300">Inner Ring:</span>
+                  <strong class="text-emerald-300 text-xs">+4 hours</strong>
+                </div>
+              </div>
             </div>
-            <div class="p-2 rounded bg-rose-950/40 border border-rose-500/50">
-              <span class="text-rose-400 font-bold text-xs block mb-0.5">-1/4 Backward</span>
-              <span class="text-on-surface-variant font-sans text-[10px]">-1/4 hr (15m) / -1h step</span>
+
+            <!-- Card 3B: RED PIN (-1/4) -->
+            <div class="p-3.5 rounded-xl bg-rose-950/25 border-2 border-rose-500/60 flex flex-col justify-between space-y-3 shadow-md">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <!-- Actual Game Pin Graphic -->
+                  <div class="w-8 h-8 rounded-full border-2 relative shrink-0" style="background-color:#ef4444; border-color:#f87171; box-shadow:0 0 12px #ef4444, inset 0 2px 3px rgba(255,255,255,0.6);"></div>
+                  <div>
+                    <div class="text-rose-300 font-bold text-sm">RED PIN</div>
+                    <div class="text-[10px] text-rose-400 font-bold">-1/4 Backward Rewind</div>
+                  </div>
+                </div>
+                <!-- Mini Clock showing -1/4 (-90 deg) counter-clockwise sweep -->
+                <svg class="w-14 h-14 shrink-0" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" fill="#0c0e14" stroke="#ef4444" stroke-width="2"/>
+                  <path d="M 40 40 L 40 12 A 28 28 0 0 0 12 40 Z" fill="#ef4444" fill-opacity="0.28"/>
+                  <path d="M 40 12 A 28 28 0 0 0 12 40" fill="none" stroke="#f87171" stroke-width="3" stroke-linecap="round"/>
+                  <polygon points="12,43 8,35 17,36" fill="#f87171"/>
+                  <line x1="40" y1="40" x2="40" y2="14" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="2 2"/>
+                  <line x1="40" y1="40" x2="14" y2="40" stroke="#f87171" stroke-width="2.5" stroke-linecap="round"/>
+                  <circle cx="40" cy="40" r="3" fill="#eec06a"/>
+                </svg>
+              </div>
+              <div class="space-y-1.5 text-[11px]">
+                <div class="px-2.5 py-1.5 rounded bg-surface-container-lowest/90 border border-sky-400/40 flex items-center justify-between">
+                  <span class="text-sky-300">Outer Ring:</span>
+                  <strong class="text-rose-300 text-xs">-15 minutes</strong>
+                </div>
+                <div class="px-2.5 py-1.5 rounded bg-surface-container-lowest/90 border border-amber-400/40 flex items-center justify-between">
+                  <span class="text-amber-300">Inner Ring:</span>
+                  <strong class="text-rose-300 text-xs">-3 hours</strong>
+                </div>
+              </div>
             </div>
-            <div class="p-2 rounded bg-sky-950/40 border border-sky-500/50">
-              <span class="text-sky-400 font-bold text-xs block mb-0.5">+1/6 Forward</span>
-              <span class="text-on-surface-variant font-sans text-[10px]">+1/6 hr (10m) / +1h step</span>
+
+            <!-- Card 3C: BLUE PIN (+1/6) -->
+            <div class="p-3.5 rounded-xl bg-sky-950/25 border-2 border-sky-500/60 flex flex-col justify-between space-y-3 shadow-md">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                  <!-- Actual Game Pin Graphic -->
+                  <div class="w-8 h-8 rounded-full border-2 relative shrink-0" style="background-color:#2e82ff; border-color:#7ca8ff; box-shadow:0 0 12px #2e82ff, inset 0 2px 3px rgba(255,255,255,0.6);"></div>
+                  <div>
+                    <div class="text-sky-300 font-bold text-sm">BLUE PIN</div>
+                    <div class="text-[10px] text-sky-400 font-bold">+1/6 Forward Step</div>
+                  </div>
+                </div>
+                <!-- Mini Clock showing +1/6 (+60 deg) clockwise sweep -->
+                <svg class="w-14 h-14 shrink-0" viewBox="0 0 80 80">
+                  <circle cx="40" cy="40" r="34" fill="#0c0e14" stroke="#2e82ff" stroke-width="2"/>
+                  <path d="M 40 40 L 40 12 A 28 28 0 0 1 64.2 26 Z" fill="#2e82ff" fill-opacity="0.28"/>
+                  <path d="M 40 12 A 28 28 0 0 1 64.2 26" fill="none" stroke="#7ca8ff" stroke-width="3" stroke-linecap="round"/>
+                  <polygon points="66,28 58,24 64,19" fill="#7ca8ff"/>
+                  <line x1="40" y1="40" x2="40" y2="14" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="2 2"/>
+                  <line x1="40" y1="40" x2="62" y2="27" stroke="#7ca8ff" stroke-width="2.5" stroke-linecap="round"/>
+                  <circle cx="40" cy="40" r="3" fill="#eec06a"/>
+                </svg>
+              </div>
+              <div class="space-y-1.5 text-[11px]">
+                <div class="px-2.5 py-1.5 rounded bg-surface-container-lowest/90 border border-sky-400/40 flex items-center justify-between">
+                  <span class="text-sky-300">Outer Ring:</span>
+                  <strong class="text-sky-300 text-xs">+10 minutes</strong>
+                </div>
+                <div class="px-2.5 py-1.5 rounded bg-surface-container-lowest/90 border border-amber-400/40 flex items-center justify-between">
+                  <span class="text-amber-300">Inner Ring:</span>
+                  <strong class="text-sky-300 text-xs">+2 hours</strong>
+                </div>
+              </div>
             </div>
+
           </div>
         </div>
 
-        <!-- Step 4: Touch & Mobile Controls -->
-        <div class="p-3.5 rounded-lg bg-surface-container border border-primary/30 space-y-1.5">
-          <div class="flex items-center gap-2 font-mono text-primary font-bold text-[11px] uppercase tracking-wider">
-            <span class="w-5 h-5 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-mono text-xs font-bold">4</span>
-            <span>How to Place Pins (Super Simple!)</span>
+        <!-- ================================================================= -->
+        <!-- SECTION 4: HOW PINS ARE TRIGGERED (3-STAGE VISUAL DEMO)           -->
+        <!-- ================================================================= -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-surface-container border-2 border-primary/50 shadow-lg space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2 font-mono text-primary font-bold text-xs sm:text-sm uppercase tracking-wider">
+              <span class="w-6 h-6 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-bold text-xs shadow">4</span>
+              <span>How Pins Are Triggered (Exact Socket Contact!)</span>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 font-mono text-[10px] text-amber-300 font-bold">Activates ONLY When Hand Reaches Socket</span>
           </div>
-          <ul class="space-y-1 font-mono text-[11px] text-on-surface-variant">
-            <li class="flex items-center gap-2">
-              <span class="text-primary font-bold">👉</span>
-              <span><strong>Tap-to-Place (Easiest):</strong> Tap a pin in your tray, then tap any socket on the clock!</span>
-            </li>
-            <li class="flex items-center gap-2">
-              <span class="text-primary font-bold">👉</span>
-              <span><strong>Drag-and-Drop:</strong> Or drag any pin directly into a clock socket.</span>
-            </li>
-            <li class="flex items-center gap-2">
-              <span class="text-primary font-bold">👉</span>
-              <span><strong>Remove:</strong> Tap any slotted pin on the clock to return it to your tray.</span>
-            </li>
-          </ul>
+
+          <!-- 3-Stage Sequential Illustration -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-stretch">
+            
+            <!-- Stage 1: Hand Approaches -->
+            <div class="p-3 rounded-xl bg-surface-container-lowest/90 border border-outline-variant/50 flex flex-col items-center text-center justify-between">
+              <span class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-mono text-[10px] font-bold uppercase">Stage 1: Approaching</span>
+              <svg class="w-28 h-28 my-1" viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r="62" fill="#101218" stroke="#4e4638" stroke-width="2.5"/>
+                <circle cx="70" cy="70" r="44" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.5"/>
+                <!-- Pin waiting at 15m socket (114, 70) -->
+                <circle cx="114" cy="70" r="8" fill="#10b981" stroke="#34d399" stroke-width="2"/>
+                <!-- Hand at 8m (not yet at 15m!) -->
+                <line x1="70" y1="70" x2="103" y2="41" stroke="#38bdf8" stroke-width="3.5" stroke-linecap="round"/>
+                <!-- Small movement arrow toward 15m -->
+                <path d="M 107 46 A 44 44 0 0 1 113 60" fill="none" stroke="#7dd3fc" stroke-width="2" stroke-dasharray="2 2"/>
+                <polygon points="113,62 109,56 116,56" fill="#7dd3fc"/>
+                <circle cx="70" cy="70" r="4.5" fill="#eec06a"/>
+              </svg>
+              <div>
+                <div class="font-mono text-xs font-bold text-on-surface">Pin Waits (Inactive)</div>
+                <div class="text-[11px] text-on-surface-variant">Hand has not reached socket yet</div>
+              </div>
+            </div>
+
+            <!-- Stage 2: Hand Reaches Exact Socket -->
+            <div class="p-3 rounded-xl bg-surface-container-lowest/90 border-2 border-primary flex flex-col items-center text-center justify-between shadow-[0_0_18px_rgba(238,192,106,0.2)]">
+              <span class="px-2 py-0.5 rounded bg-primary/20 text-primary border border-primary/50 font-mono text-[10px] font-bold uppercase">Stage 2: Exact Contact!</span>
+              <svg class="w-28 h-28 my-1" viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r="62" fill="#101218" stroke="#eec06a" stroke-width="2.5"/>
+                <circle cx="70" cy="70" r="44" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.5"/>
+                <!-- Glowing Activation Rings at 15m socket (114, 70) -->
+                <circle cx="114" cy="70" r="14" fill="none" stroke="#ffdea7" stroke-width="2" opacity="0.85">
+                  <animate attributeName="r" values="9;16;9" dur="1.2s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="1;0.2;1" dur="1.2s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="114" cy="70" r="8.5" fill="#10b981" stroke="#ffffff" stroke-width="2.5"/>
+                <!-- Hand physically touching exact 15m socket -->
+                <line x1="70" y1="70" x2="114" y2="70" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="70" cy="70" r="4.5" fill="#eec06a"/>
+              </svg>
+              <div>
+                <div class="font-mono text-xs font-bold text-primary">⚡ Pin Activates Now!</div>
+                <div class="text-[11px] text-on-surface-variant">Hand reaches the exact socket</div>
+              </div>
+            </div>
+
+            <!-- Stage 3: Pin Warps Hand -->
+            <div class="p-3 rounded-xl bg-surface-container-lowest/90 border border-emerald-400/60 flex flex-col items-center text-center justify-between">
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 font-mono text-[10px] font-bold uppercase">Stage 3: Time Jump!</span>
+              <svg class="w-28 h-28 my-1" viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r="62" fill="#101218" stroke="#10b981" stroke-width="2.5"/>
+                <!-- Spent Grey Pin at 15m (114, 70) -->
+                <circle cx="114" cy="70" r="7.5" fill="#383838" stroke="#71717a" stroke-width="2"/>
+                <!-- Warp Sweep Arc from 15m (90 deg) to 35m (210 deg) -->
+                <path d="M 114 70 A 44 44 0 0 1 48 108" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
+                <polygon points="44,106 54,104 50,113" fill="#10b981"/>
+                <!-- Ghost hand at 15m -->
+                <line x1="70" y1="70" x2="108" y2="70" stroke="#38bdf8" stroke-width="2" stroke-dasharray="3 3" opacity="0.5"/>
+                <!-- New warped hand at 35m -->
+                <line x1="70" y1="70" x2="46" y2="110" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
+                <circle cx="70" cy="70" r="4.5" fill="#eec06a"/>
+              </svg>
+              <div>
+                <div class="font-mono text-xs font-bold text-emerald-400">Hand Jumps +20m!</div>
+                <div class="text-[11px] text-on-surface-variant">Used pin turns grey</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Inner Ring Hour Hand Note -->
+          <div class="px-3 py-2 rounded-lg bg-amber-950/30 border border-amber-400/40 flex items-center justify-center gap-2 font-mono text-[11px] text-amber-200 text-center">
+            <span class="material-symbols-outlined text-amber-400 text-base shrink-0">schedule</span>
+            <span><strong>Inner Ring Rule:</strong> Amber sockets work the exact same way — they activate ONLY when the <strong>Hour Hand</strong> reaches them!</span>
+          </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- SECTION 5: HOW TO PLACE PINS (3 ILLUSTRATED CARDS)                -->
+        <!-- ================================================================= -->
+        <div class="p-3.5 sm:p-5 rounded-xl bg-surface-container border border-outline-variant/50 shadow-lg space-y-3">
+          <div class="flex items-center gap-2 font-mono text-primary font-bold text-xs sm:text-sm uppercase tracking-wider">
+            <span class="w-6 h-6 rounded-full bg-primary text-surface-container-lowest flex items-center justify-center font-bold text-xs shadow">5</span>
+            <span>How to Play in 3 Easy Steps</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            
+            <!-- STEP 1: SELECT -->
+            <div class="p-3.5 rounded-xl bg-surface-container-lowest/90 border border-primary/40 flex flex-col items-center text-center space-y-2">
+              <div class="font-mono text-xs font-bold text-primary uppercase tracking-wider">Step 1: Select</div>
+              <svg class="w-32 h-20" viewBox="0 0 150 90">
+                <rect x="10" y="15" width="130" height="58" rx="10" fill="#191b22" stroke="#4e4638" stroke-width="2"/>
+                <!-- 3 Pins in Tray -->
+                <circle cx="40" cy="44" r="14" fill="none" stroke="#ffdea7" stroke-width="2" stroke-dasharray="3 2"/>
+                <circle cx="40" cy="44" r="10" fill="#10b981" stroke="#34d399" stroke-width="2"/>
+                <circle cx="78" cy="44" r="10" fill="#ef4444" stroke="#f87171" stroke-width="2" opacity="0.7"/>
+                <circle cx="114" cy="44" r="10" fill="#2e82ff" stroke="#7ca8ff" stroke-width="2" opacity="0.7"/>
+                <!-- Pointer Tap Indicator -->
+                <path d="M 44 52 L 54 76 L 47 74 L 42 82 L 38 80 L 43 72 L 37 72 Z" fill="#ffdea7" stroke="#0c0e14" stroke-width="1"/>
+              </svg>
+              <p class="text-[11px] text-on-surface-variant">Tap or drag a pin from the tray.</p>
+            </div>
+
+            <!-- STEP 2: PLACE -->
+            <div class="p-3.5 rounded-xl bg-surface-container-lowest/90 border border-sky-400/40 flex flex-col items-center text-center space-y-2">
+              <div class="font-mono text-xs font-bold text-sky-300 uppercase tracking-wider">Step 2: Place</div>
+              <svg class="w-32 h-20" viewBox="0 0 150 90">
+                <!-- Partial Clock Arc & Socket -->
+                <path d="M 20 80 A 65 65 0 0 1 130 80" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4 4"/>
+                <!-- Target Socket at (95, 36) -->
+                <circle cx="95" cy="36" r="13" fill="none" stroke="#eec06a" stroke-width="2" stroke-dasharray="3 2"/>
+                <circle cx="95" cy="36" r="9" fill="#10b981" stroke="#34d399" stroke-width="2"/>
+                <!-- Motion trail from left pin -->
+                <circle cx="35" cy="55" r="8" fill="#10b981" opacity="0.35"/>
+                <path d="M 45 52 Q 68 25 82 33" fill="none" stroke="#ffdea7" stroke-width="2.5" stroke-dasharray="3 3"/>
+                <polygon points="84,35 76,36 80,28" fill="#ffdea7"/>
+              </svg>
+              <p class="text-[11px] text-on-surface-variant">Drop or tap it into a clock socket.</p>
+            </div>
+
+            <!-- STEP 3: START -->
+            <div class="p-3.5 rounded-xl bg-surface-container-lowest/90 border border-emerald-400/40 flex flex-col items-center text-center space-y-2">
+              <div class="font-mono text-xs font-bold text-emerald-300 uppercase tracking-wider">Step 3: Start</div>
+              <svg class="w-32 h-20" viewBox="0 0 150 90">
+                <!-- Brass Start Button Graphic -->
+                <rect x="20" y="26" width="110" height="38" rx="8" fill="#eec06a" stroke="#ffdea7" stroke-width="2"/>
+                <polygon points="44,38 44,52 56,45" fill="#271900"/>
+                <text x="86" y="49" text-anchor="middle" fill="#271900" font-size="11" font-weight="bold" font-family="monospace">START</text>
+              </svg>
+              <p class="text-[11px] text-on-surface-variant">Press <strong>START CLOCK</strong> to run! (Tap a placed pin anytime to remove it.)</p>
+            </div>
+
+          </div>
         </div>
 
       </div>
 
-      <!-- Footer Actions -->
-      <div class="p-4 bg-surface-container border-t border-outline-variant/40 flex flex-col sm:flex-row items-center justify-between gap-3 font-mono">
-        <button id="btn-start-walkthrough" class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-primary/20 hover:bg-primary/30 border border-primary text-primary font-bold text-xs uppercase flex items-center justify-center gap-2 transition-all">
+      <!-- Sticky Footer Actions -->
+      <div class="px-4 py-3 sm:px-6 sm:py-3.5 bg-surface-container border-t border-outline-variant/40 flex flex-col sm:flex-row items-center justify-between gap-2.5 font-mono shrink-0">
+        <button id="btn-start-walkthrough" class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-primary/20 hover:bg-primary/30 border border-primary text-primary font-bold text-xs uppercase flex items-center justify-center gap-2 transition-all cursor-pointer">
           <span class="material-symbols-outlined text-base">play_circle</span>
-          <span>Interactive Level 1 Walkthrough</span>
+          <span>Try Level 1 Guided Walkthrough</span>
         </button>
 
-        <button id="btn-got-it" class="w-full sm:w-auto brass-actuator px-6 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider flex items-center justify-center shadow-md">
+        <button id="btn-got-it" class="w-full sm:w-auto brass-actuator px-6 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider flex items-center justify-center shadow-md cursor-pointer">
           <span>Got It, Let Me Play!</span>
         </button>
       </div>
