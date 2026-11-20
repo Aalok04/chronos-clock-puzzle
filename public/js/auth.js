@@ -83,6 +83,8 @@ class ChronosAuth {
     });
     const data = await res.json();
     if (data.success) {
+      localStorage.setItem('chronos_tutorial_pending', 'true');
+      sessionStorage.removeItem('chronos_level1_tutorial_seen');
       this.saveSession(data.token, data.user);
       this.notifyUserChange();
     }
@@ -97,6 +99,8 @@ class ChronosAuth {
     });
     const data = await res.json();
     if (data.success) {
+      localStorage.setItem('chronos_tutorial_pending', 'true');
+      sessionStorage.removeItem('chronos_level1_tutorial_seen');
       this.saveSession(data.token, data.user);
       this.notifyUserChange();
     }
@@ -118,6 +122,8 @@ class ChronosAuth {
     localStorage.removeItem('chronos_token');
     localStorage.removeItem('chronos_user');
     localStorage.removeItem('chronos_guest');
+    localStorage.removeItem('chronos_tutorial_pending');
+    sessionStorage.removeItem('chronos_level1_tutorial_seen');
     this.notifyUserChange();
   }
 

@@ -841,8 +841,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const feedbackInput = document.getElementById('feedback-input-text');
     if (feedbackInput) feedbackInput.value = '';
 
-    // Compulsory Level 1 Tutorial Window Check
-    if (lvlNum === 1 && !sessionStorage.getItem('chronos_level1_tutorial_seen')) {
+    // Automatically open tutorial once after each successful login when first game screen is ready
+    if (localStorage.getItem('chronos_tutorial_pending') === 'true') {
+      localStorage.removeItem('chronos_tutorial_pending');
       openTutorialModal();
     }
   }
@@ -1066,6 +1067,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
 
     showFloatingNotification(`⚔️ ${fromFriend ? 'Duel from ' + challenger : 'Custom Challenge'} Loaded! Target: ${target}`, '#10b981');
+
+    if (window.chronosAuth.user && localStorage.getItem('chronos_tutorial_pending') === 'true') {
+      localStorage.removeItem('chronos_tutorial_pending');
+      openTutorialModal();
+    }
   }
 
   // URL Challenge Detection on Page Load
@@ -1220,10 +1226,8 @@ document.addEventListener('DOMContentLoaded', async () => {
               ? requestedLvl
               : savedLevel;
 
-            setTimeout(() => {
-              selectLevel(resumeLvl);
-              showFloatingNotification(`Epoch ${resumeLvl} Ready! Saved progress restored.`, '#10b981');
-            }, 300);
+            selectLevel(resumeLvl);
+            showFloatingNotification(`Epoch ${resumeLvl} Ready! Saved progress restored.`, '#10b981');
           } else {
             if (isSignUpMode && res.code === 'ACCOUNT_EXISTS' && tabSignIn) {
               tabSignIn.click();
@@ -1403,6 +1407,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function closeTutorialModal() {
+    localStorage.removeItem('chronos_tutorial_pending');
     sessionStorage.setItem('chronos_level1_tutorial_seen', 'true');
     if (tutorialOverlay) tutorialOverlay.classList.add('hidden');
   }
