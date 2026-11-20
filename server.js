@@ -16,9 +16,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Prevent aggressive caching of HTML documents to ensure UI updates apply immediately
+// Prevent aggressive caching of HTML, CSS, and JS assets to ensure UI updates apply immediately
 app.use((req, res, next) => {
-  if (req.path.endsWith('.html') || req.path === '/game' || req.path === '/play' || req.path === '/' || req.path === '/admin') {
+  if (
+    req.path.endsWith('.html') ||
+    req.path.endsWith('.css') ||
+    req.path.endsWith('.js') ||
+    req.path === '/game' ||
+    req.path === '/play' ||
+    req.path === '/' ||
+    req.path === '/admin'
+  ) {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
