@@ -118,16 +118,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const emailLabel = document.getElementById('landing-email-label');
 
     if (mode === 'signin') {
-      tabSignin.className = "py-2 px-3 rounded-sm text-center transition-all bg-surface-container-highest text-primary border border-primary/40 font-semibold shadow-inner flex items-center justify-center gap-1.5";
-      tabSignup.className = "py-2 px-3 rounded-sm text-center transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center gap-1.5";
+      tabSignin.className = "py-1.5 sm:py-2 px-2 sm:px-3 rounded-sm text-center transition-all bg-surface-container-highest text-primary border border-primary/40 font-semibold shadow-inner flex items-center justify-center gap-1.5";
+      tabSignup.className = "py-1.5 sm:py-2 px-2 sm:px-3 rounded-sm text-center transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center gap-1.5";
       formHeading.textContent = "Sign In";
       formSubheading.textContent = "Sign in with your username or email.";
       if (handleLabel) handleLabel.textContent = "Username or Email";
       emailGroup.classList.add('hidden');
       submitLabel.textContent = "SIGN IN & ENTER CHAMBER";
     } else {
-      tabSignup.className = "py-2 px-3 rounded-sm text-center transition-all bg-surface-container-highest text-primary border border-primary/40 font-semibold shadow-inner flex items-center justify-center gap-1.5";
-      tabSignin.className = "py-2 px-3 rounded-sm text-center transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center gap-1.5";
+      tabSignup.className = "py-1.5 sm:py-2 px-2 sm:px-3 rounded-sm text-center transition-all bg-surface-container-highest text-primary border border-primary/40 font-semibold shadow-inner flex items-center justify-center gap-1.5";
+      tabSignin.className = "py-1.5 sm:py-2 px-2 sm:px-3 rounded-sm text-center transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center gap-1.5";
       formHeading.textContent = "Create Account";
       formSubheading.textContent = "Create a player account to sync progress and unlock all epochs.";
       if (handleLabel) handleLabel.textContent = "Username";

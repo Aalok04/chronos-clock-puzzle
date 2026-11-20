@@ -1157,8 +1157,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (tabSignIn && tabSignUp) {
       tabSignIn.addEventListener('click', () => {
         isSignUpMode = false;
-        tabSignIn.className = 'py-2.5 px-3 rounded-sm font-label-md text-center transition-all bg-surface-container-highest text-primary border border-primary/40 font-semibold shadow-inner flex items-center justify-center gap-2';
-        tabSignUp.className = 'py-2.5 px-3 rounded-sm font-label-md text-center transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center gap-2';
+        tabSignIn.className = 'py-1.5 sm:py-2 px-2 sm:px-3 rounded-sm font-label-md text-center transition-all bg-surface-container-highest text-primary border border-primary/40 font-semibold shadow-inner flex items-center justify-center gap-1.5';
+        tabSignUp.className = 'py-1.5 sm:py-2 px-2 sm:px-3 rounded-sm font-label-md text-center transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center gap-1.5';
         authFormHeading.textContent = 'Sign In';
         authSubmitLabel.textContent = 'SIGN IN & ENTER CHAMBER';
         if (handleLabel) handleLabel.textContent = 'Username or Email';
@@ -1168,8 +1168,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       tabSignUp.addEventListener('click', () => {
         isSignUpMode = true;
-        tabSignUp.className = 'py-2.5 px-3 rounded-sm font-label-md text-center transition-all bg-surface-container-highest text-primary border border-primary/40 font-semibold shadow-inner flex items-center justify-center gap-2';
-        tabSignIn.className = 'py-2.5 px-3 rounded-sm font-label-md text-center transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center gap-2';
+        tabSignUp.className = 'py-1.5 sm:py-2 px-2 sm:px-3 rounded-sm font-label-md text-center transition-all bg-surface-container-highest text-primary border border-primary/40 font-semibold shadow-inner flex items-center justify-center gap-1.5';
+        tabSignIn.className = 'py-1.5 sm:py-2 px-2 sm:px-3 rounded-sm font-label-md text-center transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center justify-center gap-1.5';
         authFormHeading.textContent = 'Create Account';
         authSubmitLabel.textContent = 'CREATE ACCOUNT & CONTINUE';
         if (handleLabel) handleLabel.textContent = 'Username';

@@ -17,6 +17,56 @@ html, body {
   box-sizing: border-box;
 }
 
+/* Mobile Layout & Clock Arena Guarantee */
+#clock-chassis {
+  width: 260px;
+  height: 260px;
+  min-width: 260px;
+  min-height: 260px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  #clock-chassis {
+    width: 330px;
+    height: 330px;
+    min-width: 330px;
+    min-height: 330px;
+  }
+}
+
+@media (min-width: 1024px) {
+  #clock-chassis {
+    width: min(48vh, 390px);
+    height: min(48vh, 390px);
+    min-width: 280px;
+    min-height: 280px;
+  }
+}
+
+@media (max-width: 1023px) {
+  body {
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow-y: auto !important;
+  }
+
+  main {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    flex: 1 0 auto !important;
+  }
+
+  #clock-arena-section {
+    flex: 0 0 auto !important;
+    min-height: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+    display: flex !important;
+  }
+}
+
 :root {
   --color-obsidian: #0c0e14;
   --color-slate-base: #111319;
